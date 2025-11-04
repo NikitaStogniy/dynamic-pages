@@ -1,41 +1,30 @@
 import { NextResponse } from 'next/server';
-import { validateSession } from '@/lib/auth';
+import { verifySession } from '@/lib/auth/session';
 
-export async function POST(request: Request) {
+export async function GET() {
   try {
-    const body = await request.json();
-    const { sessionToken } = body;
-    
-    if (!sessionToken) {
-      return NextResponse.json(
-        { error: 'Session token is required' },
-        { status: 400 }
-      );
-    }
-    
-    // Validate the session
-    const sessionData = await validateSession(sessionToken);
-    
-    if (!sessionData) {
+    // Verify session from httpOnly cookie
+    const session = await verifySession();
+
+    if (!session) {
       return NextResponse.json(
         { error: 'Invalid or expired session' },
         { status: 401 }
       );
     }
-    
+
     return NextResponse.json({
       user: {
-        id: sessionData.user.id,
-        email: sessionData.user.email,
-        emailVerified: sessionData.user.emailVerified,
+        id: session.userId,
+        email: session.email,
       },
-      session: {
-        id: sessionData.session.id,
-        expiresAt: sessionData.session.expiresAt,
-      },
+      expiresAt: session.expiresAt,
     });
   } catch (error) {
-    console.error('Session validation error:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Session validation error:', error);
+    }
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

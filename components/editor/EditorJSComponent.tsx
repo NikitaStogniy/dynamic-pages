@@ -25,6 +25,7 @@ export default function EditorJSComponent({
   const holderId = useRef(`editorjs-${Math.random().toString(36).substr(2, 9)}`);
   const isInitializing = useRef(false);
   const previousReadOnly = useRef(readOnly);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const initializeEditor = useCallback(async () => {
     // Prevent multiple simultaneous initializations
@@ -43,19 +44,28 @@ export default function EditorJSComponent({
       minHeight,
       onChange: async (api: API, event: CustomEvent) => {
         if (!readOnly && onChange) {
-          try {
-            const outputData = await api.saver.save();
-            // Ensure we always have at least one block
-            if (!outputData.blocks || outputData.blocks.length === 0) {
-              outputData.blocks = [{
-                type: 'paragraph',
-                data: { text: '' }
-              }];
-            }
-            onChange(outputData);
-          } catch (error) {
-            console.error('Error saving editor data:', error);
+          // Debounce save to allow uploads to complete
+          if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
           }
+
+          saveTimeoutRef.current = setTimeout(async () => {
+            try {
+              const outputData = await api.saver.save();
+              // Ensure we always have at least one block
+              if (!outputData.blocks || outputData.blocks.length === 0) {
+                outputData.blocks = [{
+                  type: 'paragraph',
+                  data: { text: '' }
+                }];
+              }
+              onChange(outputData);
+            } catch (error) {
+              if (process.env.NODE_ENV === 'development') {
+                console.error('Error saving editor data:', error);
+              }
+            }
+          }, 1000); // Wait 1 second after last change before saving
         }
       },
       onReady: () => {
@@ -67,7 +77,9 @@ export default function EditorJSComponent({
     try {
       editorRef.current = new EditorJS(config);
     } catch (error) {
-      console.error('ERROR initializing editor:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('ERROR initializing editor:', error);
+      }
       isInitializing.current = false;
     }
   }, [data, onChange, placeholder, readOnly, minHeight]);
@@ -76,6 +88,11 @@ export default function EditorJSComponent({
     initializeEditor();
 
     return () => {
+      // Clear save timeout on unmount
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+
       const destroyEditor = async () => {
         if (editorRef.current && editorRef.current.destroy) {
           try {
@@ -84,7 +101,9 @@ export default function EditorJSComponent({
             setIsReady(false);
             isInitializing.current = false;
           } catch (error) {
-            console.error('Error destroying editor:', error);
+            if (process.env.NODE_ENV === 'development') {
+              console.error('Error destroying editor:', error);
+            }
           }
         }
       };
@@ -108,7 +127,9 @@ export default function EditorJSComponent({
         }
         previousReadOnly.current = readOnly;
       } catch (error) {
-        console.error('Error toggling readOnly state:', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error toggling readOnly state:', error);
+        }
       }
     }
   }, [readOnly, isReady]);

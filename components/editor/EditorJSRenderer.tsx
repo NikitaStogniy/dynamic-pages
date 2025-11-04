@@ -18,9 +18,10 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
 
   const renderBlock = (block: any, index: number) => {
     const key = `block-${index}`;
-    
-    // Debug logging to see what blocks are being rendered
-    console.log('Rendering block:', { type: block.type, data: block.data, index });
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Rendering block:', { type: block.type, data: block.data, index });
+    }
 
     switch (block.type) {
       case 'header':
@@ -51,8 +52,11 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
 
       case 'list':
         const ListTag = block.data.style === 'ordered' ? 'ol' : 'ul';
-        console.log('Rendering list block:', block.data);
-        console.log('List items:', block.data.items);
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Rendering list block:', block.data);
+          console.log('List items:', block.data.items);
+        }
         
         // Handle both string items and object items (newer Editor.js format)
         const renderListItem = (item: any) => {
@@ -75,7 +79,11 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
           >
             {block.data.items.map((item: any, i: number) => {
               const content = renderListItem(item);
-              console.log(`List item ${i}:`, item, 'Rendered as:', content);
+
+              if (process.env.NODE_ENV === 'development') {
+                console.log(`List item ${i}:`, item, 'Rendered as:', content);
+              }
+
               return (
                 <li 
                   key={`${key}-${i}`} 
@@ -135,12 +143,39 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
         return <hr key={key} className="my-8 border-gray-300 dark:border-gray-600" />;
 
       case 'image':
+        // Validate image data structure
+        if (!block.data?.file?.url) {
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('Invalid image block data:', block);
+          }
+          return (
+            <div key={key} className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+              <p className="text-sm text-yellow-800 dark:text-yellow-300">
+                ⚠️ Image data is invalid or missing
+              </p>
+            </div>
+          );
+        }
+
         return (
           <figure key={key} className="mb-4">
-            <img 
-              src={block.data.file.url} 
-              alt={block.data.caption || 'Image'} 
+            <img
+              src={block.data.file.url}
+              alt={block.data.caption || 'Image'}
               className="w-full rounded-lg"
+              onError={(e) => {
+                if (process.env.NODE_ENV === 'development') {
+                  console.error('Failed to load image:', block.data.file.url);
+                }
+                e.currentTarget.style.display = 'none';
+                const parent = e.currentTarget.parentElement;
+                if (parent) {
+                  const errorDiv = document.createElement('div');
+                  errorDiv.className = 'p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg';
+                  errorDiv.innerHTML = '<p class="text-sm text-red-800 dark:text-red-300">Failed to load image</p>';
+                  parent.appendChild(errorDiv);
+                }
+              }}
             />
             {block.data.caption && (
               <figcaption className="text-sm text-gray-600 dark:text-gray-400 mt-2 text-center">
@@ -290,8 +325,10 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
 
       default:
         // For unknown block types, try to extract and display any text content
-        console.warn(`Unknown block type: ${block.type}`, block);
-        
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`Unknown block type: ${block.type}`, block);
+        }
+
         // Try to find and render any text content in the block
         if (block.data?.text) {
           return (
@@ -300,9 +337,11 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
             </p>
           );
         }
-        
+
         // Skip rendering if there's no recognizable content
-        console.log('Skipping unknown block with no text content:', block);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Skipping unknown block with no text content:', block);
+        }
         return null;
     }
   };

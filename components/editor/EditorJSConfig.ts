@@ -70,21 +70,12 @@ export const EDITOR_TOOLS: Record<string, ToolConstructable | ToolSettings> = {
       uploader: {
         async uploadByFile(file: File) {
           try {
-            // Get session token from localStorage
-            const sessionToken = typeof window !== 'undefined' ? localStorage.getItem('sessionToken') : null;
-            
-            if (!sessionToken) {
-              throw new Error('Not authenticated. Please sign in to upload images.');
-            }
-
             const formData = new FormData();
             formData.append('file', file);
 
             const response = await fetch('/api/upload', {
               method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${sessionToken}`,
-              },
+              credentials: 'include', // Send httpOnly cookie automatically
               body: formData,
             });
 
@@ -94,12 +85,21 @@ export const EDITOR_TOOLS: Record<string, ToolConstructable | ToolSettings> = {
             }
 
             const result = await response.json();
-            return {
-              success: result.success,
-              file: {
-                url: result.file.url
-              }
-            };
+
+            // Validate response structure
+            if (!result.file || !result.file.url) {
+              throw new Error('Invalid response format from upload API');
+            }
+
+            // Log success in development
+            if (process.env.NODE_ENV === 'development') {
+              console.log('Image uploaded successfully:', result.file.url);
+              console.log('Full upload response:', JSON.stringify(result, null, 2));
+            }
+
+            // Return the entire API response
+            // Editor.js image tool needs the full file object with all metadata
+            return result;
           } catch (error) {
             console.error('Upload error:', error);
             // Fallback to base64 if upload fails
@@ -118,13 +118,15 @@ export const EDITOR_TOOLS: Record<string, ToolConstructable | ToolSettings> = {
             });
           }
         },
-        uploadByUrl(url: string) {
-          return Promise.resolve({
+        async uploadByUrl(url: string) {
+          // For URL uploads, we just return the URL as-is
+          // Could be enhanced to download and re-upload to our CDN
+          return {
             success: 1,
             file: {
               url: url
             }
-          });
+          };
         }
       },
       captionPlaceholder: 'Image caption'

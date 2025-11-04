@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, pages, sessions } from '@/lib/db';
+import { db, pages } from '@/lib/db';
 import { eq, and } from 'drizzle-orm';
+import { verifySession } from '@/lib/auth/session';
 
 export async function GET(
   request: NextRequest,
@@ -8,28 +9,24 @@ export async function GET(
 ) {
   const resolvedParams = await params;
   try {
-    const authHeader = request.headers.get('authorization');
-    
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const sessionToken = authHeader.substring(7);
-      const session = await db.query.sessions.findFirst({
-        where: eq(sessions.sessionToken, sessionToken),
+    // Try to verify session from httpOnly cookie
+    const session = await verifySession();
+
+    if (session) {
+      // If authenticated, try to get user's page
+      const page = await db.query.pages.findFirst({
+        where: and(
+          eq(pages.slug, resolvedParams.slug),
+          eq(pages.userId, session.userId)
+        ),
       });
 
-      if (session && session.expiresAt >= new Date()) {
-        const page = await db.query.pages.findFirst({
-          where: and(
-            eq(pages.slug, resolvedParams.slug),
-            eq(pages.userId, session.userId)
-          ),
-        });
-
-        if (page) {
-          return NextResponse.json(page);
-        }
+      if (page) {
+        return NextResponse.json(page);
       }
     }
 
+    // Fall back to public page if not authenticated or page not found for user
     const publicPage = await db.query.pages.findFirst({
       where: eq(pages.slug, resolvedParams.slug),
     });
@@ -57,22 +54,12 @@ export async function PUT(
 ) {
   const resolvedParams = await params;
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // Verify session from httpOnly cookie
+    const session = await verifySession();
+
+    if (!session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const sessionToken = authHeader.substring(7);
-    const session = await db.query.sessions.findFirst({
-      where: eq(sessions.sessionToken, sessionToken),
-    });
-
-    if (!session || session.expiresAt < new Date()) {
-      return NextResponse.json(
-        { error: 'Invalid or expired session' },
         { status: 401 }
       );
     }
@@ -123,22 +110,12 @@ export async function DELETE(
 ) {
   const resolvedParams = await params;
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // Verify session from httpOnly cookie
+    const session = await verifySession();
+
+    if (!session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const sessionToken = authHeader.substring(7);
-    const session = await db.query.sessions.findFirst({
-      where: eq(sessions.sessionToken, sessionToken),
-    });
-
-    if (!session || session.expiresAt < new Date()) {
-      return NextResponse.json(
-        { error: 'Invalid or expired session' },
         { status: 401 }
       );
     }

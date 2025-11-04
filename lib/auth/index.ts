@@ -3,12 +3,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { db } from '@/lib/db';
 import { users, sessions, type User, type Session } from '@/lib/db/schema';
 import { eq, and, gt, lt } from 'drizzle-orm';
-
-const SALT_ROUNDS = 10;
-const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+import { PASSWORD_CONFIG, SESSION_CONFIG } from '@/lib/constants';
 
 export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, SALT_ROUNDS);
+  return bcrypt.hash(password, PASSWORD_CONFIG.SALT_ROUNDS);
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
@@ -21,7 +19,7 @@ export function generateSessionToken(): string {
 
 export async function createSession(userId: number): Promise<Session> {
   const sessionToken = generateSessionToken();
-  const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
+  const expiresAt = new Date(Date.now() + SESSION_CONFIG.DURATION_MS);
 
   const [session] = await db.insert(sessions).values({
     sessionToken,

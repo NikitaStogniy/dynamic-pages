@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { decrypt } from '@/lib/auth/session';
+import { SESSION_CONFIG } from '@/lib/constants';
 
 // Routes that require authentication
 const protectedRoutes = ['/dashboard'];
@@ -7,35 +9,74 @@ const protectedRoutes = ['/dashboard'];
 // Routes that should redirect to dashboard if authenticated
 const authRoutes = ['/signin', '/signup'];
 
-export function middleware(request: NextRequest) {
+// Public routes that don't require any auth check
+const publicRoutes = ['/p'];
+
+export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  
+
+  // Skip auth check for public routes
+  const isPublicRoute = publicRoutes.some(route =>
+    path.startsWith(route)
+  );
+
+  if (isPublicRoute) {
+    return NextResponse.next();
+  }
+
   // Check if the current path is protected
-  const isProtectedRoute = protectedRoutes.some(route => 
+  const isProtectedRoute = protectedRoutes.some(route =>
     path === route || path.startsWith(`${route}/`)
   );
-  
+
   // Check if the current path is an auth route
-  const isAuthRoute = authRoutes.includes(path);
-  
-  // In middleware, we can't access localStorage directly
-  // The client will handle the actual auth check
-  // This middleware sets headers to help the client-side routing
-  
-  if (isProtectedRoute) {
-    // Add a header to indicate this is a protected route
-    const response = NextResponse.next();
-    response.headers.set('x-protected-route', 'true');
-    return response;
+  const isAuthRoute = authRoutes.some(route => path === route);
+
+  // Get session from cookie
+  const cookie = request.cookies.get(SESSION_CONFIG.COOKIE_NAME)?.value;
+  const session = await decrypt(cookie);
+
+  // Redirect to signin if accessing protected route without valid session
+  if (isProtectedRoute && !session?.userId) {
+    const url = new URL('/signin', request.url);
+    url.searchParams.set('callbackUrl', path);
+    return NextResponse.redirect(url);
   }
-  
-  if (isAuthRoute) {
-    // Add a header to indicate this is an auth route
-    const response = NextResponse.next();
-    response.headers.set('x-auth-route', 'true');
-    return response;
+
+  // Redirect to dashboard if accessing auth routes with valid session
+  if (isAuthRoute && session?.userId) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
-  
+
+  // Update session expiration if needed
+  if (session?.userId) {
+    // Check if session needs refresh (more than half time passed)
+    const now = Date.now();
+    const expiresAt = new Date(session.expiresAt).getTime();
+    const halfDuration = SESSION_CONFIG.DURATION_MS / 2;
+
+    if (expiresAt - now < halfDuration) {
+      // Session needs refresh
+      const { encrypt } = await import('@/lib/auth/session');
+      const newExpiresAt = new Date(now + SESSION_CONFIG.DURATION_MS);
+      const newSession = await encrypt({
+        ...session,
+        expiresAt: newExpiresAt,
+      });
+
+      const response = NextResponse.next();
+      response.cookies.set(SESSION_CONFIG.COOKIE_NAME, newSession, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        expires: newExpiresAt,
+        sameSite: 'lax',
+        path: '/',
+      });
+
+      return response;
+    }
+  }
+
   return NextResponse.next();
 }
 

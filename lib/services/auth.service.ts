@@ -1,5 +1,3 @@
-import type { User } from '@/lib/db/schema';
-
 export interface SignInRequest {
   email: string;
   password: string;
@@ -11,13 +9,18 @@ export interface SignUpRequest {
 }
 
 export interface AuthResponse {
-  user: User;
-  sessionToken: string;
+  user: {
+    id: number;
+    email: string;
+  };
 }
 
 export interface SessionResponse {
-  user: User;
-  valid: boolean;
+  user: {
+    id: number;
+    email: string;
+  };
+  expiresAt: string;
 }
 
 class AuthService {
@@ -32,6 +35,7 @@ class AuthService {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', // Required for cookies
       body: JSON.stringify(data),
     });
 
@@ -52,6 +56,7 @@ class AuthService {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', // Required for cookies
       body: JSON.stringify(data),
     });
 
@@ -64,15 +69,12 @@ class AuthService {
   }
 
   /**
-   * Check session validity
+   * Check session validity from httpOnly cookie
    */
-  async checkSession(sessionToken: string): Promise<SessionResponse> {
+  async checkSession(): Promise<SessionResponse> {
     const response = await fetch(`${this.basePath}/session`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ sessionToken }),
+      method: 'GET',
+      credentials: 'include', // Required for cookies
     });
 
     if (!response.ok) {
@@ -83,15 +85,12 @@ class AuthService {
   }
 
   /**
-   * Sign out
+   * Sign out and clear httpOnly cookie
    */
-  async signOut(sessionToken: string): Promise<void> {
+  async signOut(): Promise<void> {
     await fetch(`${this.basePath}/signout`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ sessionToken }),
+      credentials: 'include', // Required for cookies
     });
   }
 }

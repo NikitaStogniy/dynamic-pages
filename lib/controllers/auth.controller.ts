@@ -1,12 +1,8 @@
 import { authService } from '@/lib/services/auth.service';
-import type { User } from '@/lib/db/schema';
-
-const SESSION_TOKEN_KEY = 'sessionToken';
 
 export interface AuthUser {
   id: number;
   email: string;
-  emailVerified: boolean;
 }
 
 class AuthController {
@@ -29,35 +25,7 @@ class AuthController {
   }
 
   /**
-   * Store session token in localStorage
-   */
-  private storeSessionToken(token: string): void {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(SESSION_TOKEN_KEY, token);
-    }
-  }
-
-  /**
-   * Get session token from localStorage
-   */
-  getSessionToken(): string | null {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem(SESSION_TOKEN_KEY);
-    }
-    return null;
-  }
-
-  /**
-   * Remove session token from localStorage
-   */
-  private removeSessionToken(): void {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(SESSION_TOKEN_KEY);
-    }
-  }
-
-  /**
-   * Sign in user
+   * Sign in user (session stored in httpOnly cookie)
    */
   async signIn(email: string, password: string): Promise<AuthUser> {
     if (!this.validateEmail(email)) {
@@ -65,17 +33,15 @@ class AuthController {
     }
 
     const response = await authService.signIn({ email, password });
-    this.storeSessionToken(response.sessionToken);
-    
+
     return {
       id: response.user.id,
       email: response.user.email,
-      emailVerified: response.user.emailVerified || false,
     };
   }
 
   /**
-   * Sign up new user
+   * Sign up new user (session stored in httpOnly cookie)
    */
   async signUp(email: string, password: string): Promise<AuthUser> {
     if (!this.validateEmail(email)) {
@@ -88,60 +54,38 @@ class AuthController {
     }
 
     const response = await authService.signUp({ email, password });
-    this.storeSessionToken(response.sessionToken);
-    
+
     return {
       id: response.user.id,
       email: response.user.email,
-      emailVerified: response.user.emailVerified || false,
     };
   }
 
   /**
-   * Check current session
+   * Check current session from httpOnly cookie
    */
   async checkSession(): Promise<AuthUser | null> {
-    const token = this.getSessionToken();
-    if (!token) {
+    try {
+      const response = await authService.checkSession();
+      return {
+        id: response.user.id,
+        email: response.user.email,
+      };
+    } catch (error) {
+      // Session invalid or expired
       return null;
     }
-
-    try {
-      const response = await authService.checkSession(token);
-      if (response.valid) {
-        return {
-          id: response.user.id,
-          email: response.user.email,
-          emailVerified: response.user.emailVerified || false,
-        };
-      }
-    } catch (error) {
-      this.removeSessionToken();
-    }
-
-    return null;
   }
 
   /**
-   * Sign out user
+   * Sign out user (clears httpOnly cookie on server)
    */
   async signOut(): Promise<void> {
-    const token = this.getSessionToken();
-    if (token) {
-      try {
-        await authService.signOut(token);
-      } catch (error) {
-        console.error('Sign out error:', error);
-      }
+    try {
+      await authService.signOut();
+    } catch (error) {
+      console.error('Sign out error:', error);
     }
-    this.removeSessionToken();
-  }
-
-  /**
-   * Check if user is authenticated
-   */
-  isAuthenticated(): boolean {
-    return !!this.getSessionToken();
   }
 }
 

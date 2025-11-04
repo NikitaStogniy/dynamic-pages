@@ -1,24 +1,17 @@
 import { NextResponse } from 'next/server';
-import { deleteSession } from '@/lib/auth';
+import { deleteSessionCookie } from '@/lib/auth/session';
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
-    const body = await request.json();
-    const { sessionToken } = body;
-    
-    if (!sessionToken) {
-      return NextResponse.json(
-        { error: 'Session token is required' },
-        { status: 400 }
-      );
-    }
-    
-    // Delete the session
-    await deleteSession(sessionToken);
-    
+    // Delete the session cookie
+    await deleteSessionCookie();
+
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Sign out error:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Sign out error:', error);
+    }
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

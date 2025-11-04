@@ -20,13 +20,6 @@ class ApiService {
     this.baseUrl = baseUrl;
   }
 
-  private getAuthToken(): string | null {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('sessionToken');
-    }
-    return null;
-  }
-
   private buildUrl(endpoint: string, params?: Record<string, string>): string {
     const url = new URL(endpoint, window.location.origin);
     if (params) {
@@ -65,11 +58,6 @@ class ApiService {
       ...config?.headers,
     };
 
-    const token = this.getAuthToken();
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
     return headers;
   }
 
@@ -79,6 +67,7 @@ class ApiService {
       ...config,
       method: 'GET',
       headers: this.getHeaders(config),
+      credentials: 'include', // Required for cookies
     });
     return this.handleResponse<T>(response);
   }
@@ -89,6 +78,7 @@ class ApiService {
       ...config,
       method: 'POST',
       headers: this.getHeaders(config),
+      credentials: 'include', // Required for cookies
       body: data ? JSON.stringify(data) : undefined,
     });
     return this.handleResponse<T>(response);
@@ -100,6 +90,7 @@ class ApiService {
       ...config,
       method: 'PUT',
       headers: this.getHeaders(config),
+      credentials: 'include', // Required for cookies
       body: data ? JSON.stringify(data) : undefined,
     });
     return this.handleResponse<T>(response);
@@ -111,6 +102,7 @@ class ApiService {
       ...config,
       method: 'DELETE',
       headers: this.getHeaders(config),
+      credentials: 'include', // Required for cookies
     });
     return this.handleResponse<T>(response);
   }
@@ -121,6 +113,7 @@ class ApiService {
       ...config,
       method: 'PATCH',
       headers: this.getHeaders(config),
+      credentials: 'include', // Required for cookies
       body: data ? JSON.stringify(data) : undefined,
     });
     return this.handleResponse<T>(response);
