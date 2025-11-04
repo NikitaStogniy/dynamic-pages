@@ -3,6 +3,7 @@
 import { useAuth } from '@/lib/auth/context-new';
 import { LogoIcon } from "@/components/icons";
 import {UserComponent} from '@/components/ui/UserComponent'
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 export default function DashboardLayout({
   children,
 }: {
@@ -28,11 +29,14 @@ export default function DashboardLayout({
 
   return (
     <div className=" max-w-7xl mx-auto min-h-screen flex flex-col">
-      <div className="flex items-between justify-between w-full">
+      <div className="flex items-center justify-between w-full gap-4">
             <div className="dark:invert">
             <LogoIcon />
             </div>
-            <UserComponent />
+            <div className="flex items-center gap-4">
+              <ThemeToggle />
+              <UserComponent />
+            </div>
         </div>
       <main className="flex-1">
         {children}
