@@ -1,0 +1,255 @@
+'use client';
+
+import { useEffect, useRef, useCallback, useState } from 'react';
+import EditorJS, { API, EditorConfig } from '@editorjs/editorjs';
+import { OutputData, ensureValidEditorData } from '@/lib/types/editor';
+import { EDITOR_CONFIG } from './EditorJSConfig';
+
+interface EditorJSComponentProps {
+  data?: OutputData;
+  onChange?: (data: OutputData) => void;
+  placeholder?: string;
+  readOnly?: boolean;
+  minHeight?: number;
+}
+
+export default function EditorJSComponent({
+  data,
+  onChange,
+  placeholder,
+  readOnly = false,
+  minHeight = 200
+}: EditorJSComponentProps) {
+  const editorRef = useRef<EditorJS | null>(null);
+  const [isReady, setIsReady] = useState(false);
+  const holderId = useRef(`editorjs-${Math.random().toString(36).substr(2, 9)}`);
+  const isInitializing = useRef(false);
+  const previousReadOnly = useRef(readOnly);
+
+  const initializeEditor = useCallback(async () => {
+    // Prevent multiple simultaneous initializations
+    if (isInitializing.current || editorRef.current) {
+      return;
+    }
+
+    isInitializing.current = true;
+
+    const config: EditorConfig = {
+      ...EDITOR_CONFIG,
+      holder: holderId.current,
+      placeholder: placeholder || EDITOR_CONFIG.placeholder,
+      data: ensureValidEditorData(data),
+      readOnly,
+      minHeight,
+      onChange: async (api: API, event: CustomEvent) => {
+        if (!readOnly && onChange) {
+          try {
+            const outputData = await api.saver.save();
+            // Ensure we always have at least one block
+            if (!outputData.blocks || outputData.blocks.length === 0) {
+              outputData.blocks = [{
+                type: 'paragraph',
+                data: { text: '' }
+              }];
+            }
+            onChange(outputData);
+          } catch (error) {
+            console.error('Error saving editor data:', error);
+          }
+        }
+      },
+      onReady: () => {
+        setIsReady(true);
+        isInitializing.current = false;
+      }
+    } as EditorConfig;
+
+    try {
+      editorRef.current = new EditorJS(config);
+    } catch (error) {
+      console.error('ERROR initializing editor:', error);
+      isInitializing.current = false;
+    }
+  }, [data, onChange, placeholder, readOnly, minHeight]);
+
+  useEffect(() => {
+    initializeEditor();
+
+    return () => {
+      const destroyEditor = async () => {
+        if (editorRef.current && editorRef.current.destroy) {
+          try {
+            await editorRef.current.destroy();
+            editorRef.current = null;
+            setIsReady(false);
+            isInitializing.current = false;
+          } catch (error) {
+            console.error('Error destroying editor:', error);
+          }
+        }
+      };
+      destroyEditor();
+    };
+  }, []); // Remove initializeEditor from deps to prevent re-initialization
+
+  // Remove the data update effect entirely as it causes issues
+  // The editor is initialized with the correct data and handles its own state
+  // External data changes should be handled by re-mounting the component
+
+  useEffect(() => {
+    if (isReady && editorRef.current && previousReadOnly.current !== readOnly) {
+      // Only toggle if readOnly actually changed
+      try {
+        // Use the toggle method correctly - it toggles the current state when called without params
+        // So we need to check current state first
+        const currentReadOnlyState = editorRef.current.readOnly.isEnabled;
+        if (currentReadOnlyState !== readOnly) {
+          editorRef.current.readOnly.toggle(readOnly);
+        }
+        previousReadOnly.current = readOnly;
+      } catch (error) {
+        console.error('Error toggling readOnly state:', error);
+      }
+    }
+  }, [readOnly, isReady]);
+
+  return (
+    <div 
+      className={`editor-wrapper ${readOnly ? 'read-only' : ''}`}
+      style={{ minHeight: `${minHeight}px` }}
+    >
+      <div 
+        id={holderId.current} 
+        className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none focus:outline-none"
+      />
+      <style jsx>{`
+        .editor-wrapper {
+          position: relative;
+          width: 100%;
+        }
+
+        .editor-wrapper.read-only {
+          pointer-events: none;
+        }
+
+        :global(.codex-editor) {
+          min-height: inherit;
+        }
+
+        :global(.ce-block__content) {
+          max-width: 100%;
+        }
+
+        :global(.ce-toolbar__content) {
+          max-width: 100%;
+        }
+
+        :global(.ce-toolbar__plus) {
+          cursor: pointer;
+        }
+
+        :global(.ce-toolbar__settings-btn) {
+          cursor: pointer;
+        }
+
+        :global(.ce-inline-toolbar) {
+          z-index: 10;
+        }
+
+        :global(.ce-conversion-toolbar) {
+          z-index: 10;
+        }
+
+        :global(.ce-settings) {
+          z-index: 10;
+        }
+
+        :global(.ce-popover) {
+          z-index: 10;
+        }
+
+        :global(.ce-toolbar__plus:hover) {
+          background-color: rgb(229 231 235);
+        }
+
+        :global(.ce-toolbar__settings-btn:hover) {
+          background-color: rgb(229 231 235);
+        }
+
+        :global(.dark .ce-toolbar__plus:hover) {
+          background-color: rgb(55 65 81);
+        }
+
+        :global(.dark .ce-toolbar__settings-btn:hover) {
+          background-color: rgb(55 65 81);
+        }
+
+        :global(.dark .codex-editor) {
+          background-color: rgb(31 41 55);
+          color: rgb(243 244 246);
+        }
+
+        :global(.dark .ce-block) {
+          color: rgb(243 244 246);
+        }
+
+        :global(.dark .ce-toolbar__plus) {
+          color: rgb(243 244 246);
+        }
+
+        :global(.dark .ce-toolbar__settings-btn) {
+          color: rgb(243 244 246);
+        }
+
+        :global(.dark .ce-popover) {
+          background-color: rgb(31 41 55);
+          border-color: rgb(55 65 81);
+        }
+
+        :global(.dark .ce-popover-item:hover) {
+          background-color: rgb(55 65 81);
+        }
+
+        :global(.dark .ce-inline-toolbar) {
+          background-color: rgb(31 41 55);
+          border-color: rgb(55 65 81);
+        }
+
+        :global(.dark .ce-conversion-toolbar) {
+          background-color: rgb(31 41 55);
+          border-color: rgb(55 65 81);
+        }
+
+        :global(.dark .ce-settings) {
+          background-color: rgb(31 41 55);
+          border-color: rgb(55 65 81);
+        }
+
+        :global(.dark .ce-settings__button:hover) {
+          background-color: rgb(55 65 81);
+        }
+
+        :global(.dark .ce-inline-tool:hover) {
+          background-color: rgb(55 65 81);
+        }
+
+        :global(.dark .ce-conversion-tool:hover) {
+          background-color: rgb(55 65 81);
+        }
+
+        :global(.dark .ce-code__textarea) {
+          background-color: rgb(17 24 39);
+          color: rgb(243 244 246);
+        }
+
+        :global(.dark .cdx-quote__text) {
+          color: rgb(243 244 246);
+        }
+
+        :global(.dark .cdx-quote__caption) {
+          color: rgb(156 163 175);
+        }
+      `}</style>
+    </div>
+  );
+}

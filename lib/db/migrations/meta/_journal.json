@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1757936843748,
+      "tag": "0000_black_jimmy_woo",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1757938583147,
+      "tag": "0001_classy_kree",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1757945289826,
+      "tag": "0002_young_matthew_murdock",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1758044740474,
+      "tag": "0003_late_jubilee",
+      "breakpoints": true
+    }
+  ]
+}

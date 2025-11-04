@@ -1,0 +1,100 @@
+@import 'highlight.js/styles/github-dark.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* EditorJS Styles */
+.codex-editor__redactor {
+  @apply pb-8;
+}
+
+.ce-block__content {
+  @apply max-w-none;
+}
+
+.ce-toolbar__content {
+  @apply max-w-none;
+}
+
+.ce-toolbar__plus {
+  @apply left-0;
+}
+
+.ce-toolbar__settings-btn {
+  @apply right-0;
+}
+
+.ce-paragraph {
+  @apply leading-relaxed;
+}
+
+.ce-header {
+  @apply font-bold;
+}
+
+h1.ce-header {
+  @apply text-3xl mb-4;
+}
+
+h2.ce-header {
+  @apply text-2xl mb-3;
+}
+
+h3.ce-header {
+  @apply text-xl mb-2;
+}
+
+.cdx-list {
+  @apply mb-4;
+}
+
+.cdx-list__item {
+  @apply leading-relaxed;
+}
+
+.cdx-checklist__item {
+  @apply mb-2;
+}
+
+.cdx-quote {
+  @apply border-l-4 border-gray-300 pl-4 italic my-4;
+}
+
+.cdx-warning {
+  @apply bg-yellow-50 border-l-4 border-yellow-400 p-4 my-4;
+}
+
+.cdx-delimiter {
+  @apply text-center text-2xl my-8;
+}
+
+.ce-code__textarea {
+  @apply bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm;
+}
+
+.cdx-table {
+  @apply w-full border-collapse my-4;
+}
+
+.cdx-table__cell {
+  @apply border border-gray-300 p-2;
+}
