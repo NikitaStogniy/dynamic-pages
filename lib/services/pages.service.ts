@@ -6,11 +6,13 @@ export interface CreatePageRequest {
   title: string;
   slug: string;
   content: OutputData;
+  qrExpiryMinutes?: number | null;
 }
 
 export interface UpdatePageRequest {
   title?: string;
   content?: OutputData;
+  qrExpiryMinutes?: number | null;
 }
 
 class PagesService {

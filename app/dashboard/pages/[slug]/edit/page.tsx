@@ -3,8 +3,9 @@
 import { useState, use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import PageEditor from '@/components/editor/PageEditor';
+import EditorJS from '@/components/editor/EditorJS';
 import { usePage, useUpdatePage } from '@/lib/hooks/queries/usePages';
+import { ensureValidEditorData } from '@/lib/types/editor';
 
 interface PageProps {
   params: Promise<{
@@ -19,11 +20,7 @@ export default function EditPage({ params }: PageProps) {
   const updatePage = useUpdatePage(resolvedParams.slug);
   
   const [title, setTitle] = useState('');
-  const [content, setContent] = useState<any>({
-    time: Date.now(),
-    blocks: [],
-    version: "2.29.1"
-  });
+  const [content, setContent] = useState(ensureValidEditorData());
   const [qrExpiryMinutes, setQrExpiryMinutes] = useState<number | null>(null);
   const [error, setError] = useState('');
 
@@ -31,11 +28,7 @@ export default function EditPage({ params }: PageProps) {
   useEffect(() => {
     if (page) {
       setTitle(page.title);
-      setContent(page.content || {
-        time: Date.now(),
-        blocks: [],
-        version: "2.29.1"
-      });
+      setContent(ensureValidEditorData(page.content));
       setQrExpiryMinutes(page.qrExpiryMinutes || null);
     }
   }, [page]);
@@ -108,7 +101,7 @@ export default function EditPage({ params }: PageProps) {
         )}
 
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Page Title
           </label>
           <input
@@ -116,29 +109,18 @@ export default function EditPage({ params }: PageProps) {
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter page title"
             required
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Page URL
-          </label>
-          <div className="flex items-center">
-            <span className="text-gray-500 bg-gray-100 px-3 py-2 rounded-lg border border-gray-300">
-              /p/{page?.slug || resolvedParams.slug}
-            </span>
-          </div>
-        </div>
-
         <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg p-4">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            ⏱️ QR Code Timer (Optional)
+            ⏱️ Таймер QR-кода (Опционально)
           </label>
           <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
-            Set how long QR code links remain active. Leave empty for permanent links.
+            Установите, как долго QR-ссылки остаются активными. Оставьте пустым для постоянных ссылок.
           </p>
           <div className="flex gap-2 items-center">
             <input
@@ -150,7 +132,7 @@ export default function EditPage({ params }: PageProps) {
               className="w-32 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
               placeholder="30"
             />
-            <span className="text-sm text-gray-600 dark:text-gray-400">minutes</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">минут</span>
           </div>
           <div className="mt-2 flex gap-2">
             <button
@@ -158,38 +140,54 @@ export default function EditPage({ params }: PageProps) {
               onClick={() => setQrExpiryMinutes(15)}
               className="px-2 py-1 text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
             >
-              15 min
+              15 мин
             </button>
             <button
               type="button"
               onClick={() => setQrExpiryMinutes(30)}
               className="px-2 py-1 text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
             >
-              30 min
+              30 мин
             </button>
             <button
               type="button"
               onClick={() => setQrExpiryMinutes(60)}
               className="px-2 py-1 text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
             >
-              1 hour
+              1 час
             </button>
             <button
               type="button"
               onClick={() => setQrExpiryMinutes(null)}
               className="px-2 py-1 text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
             >
-              No limit
+              Без лимита
             </button>
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Page URL
+          </label>
+          <div className="flex items-center">
+            <span className="text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600">
+              /p/{page?.slug || resolvedParams.slug}
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Content
           </label>
-          <div className="border border-gray-300 rounded-lg p-4">
-            <PageEditor slug={""}
+          <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 dark:bg-gray-800">
+            <EditorJS
+              key={page?.slug || resolvedParams.slug}
+              data={content}
+              onChange={setContent}
+              placeholder="Start writing your page content... Press Tab or / for commands"
+              minHeight={300}
             />
           </div>
         </div>

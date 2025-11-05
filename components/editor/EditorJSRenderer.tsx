@@ -7,6 +7,47 @@ interface EditorJSRendererProps {
   data: OutputData | null;
 }
 
+// Allowed webhook domains for security (SSRF prevention)
+const ALLOWED_WEBHOOK_DOMAINS = [
+  'hooks.slack.com',
+  'discord.com',
+  'webhook.site',
+  'requestcatcher.com',
+  // Add your own webhook domains here
+];
+
+/**
+ * Validates webhook URL to prevent SSRF attacks
+ * Only allows URLs from whitelisted domains
+ */
+function isValidWebhookUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+
+    // Only allow HTTPS for security
+    if (parsed.protocol !== 'https:') {
+      console.error('Webhook URL must use HTTPS');
+      return false;
+    }
+
+    // Check if domain is in whitelist
+    const isAllowed = ALLOWED_WEBHOOK_DOMAINS.some(domain =>
+      parsed.hostname === domain || parsed.hostname.endsWith(`.${domain}`)
+    );
+
+    if (!isAllowed) {
+      console.error(`Webhook domain not allowed: ${parsed.hostname}`);
+      console.error(`Allowed domains: ${ALLOWED_WEBHOOK_DOMAINS.join(', ')}`);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Invalid webhook URL:', error);
+    return false;
+  }
+}
+
 export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
   if (!data || !data.blocks || data.blocks.length === 0) {
     return (
@@ -16,7 +57,7 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
     );
   }
 
-  const renderBlock = (block: any, index: number) => {
+  const renderBlock = (block: { type: string; data: Record<string, unknown> }, index: number) => {
     const key = `block-${index}`;
 
     if (process.env.NODE_ENV === 'development') {
@@ -294,7 +335,13 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
                   e.preventDefault();
                   // Extract webhook URL (remove webhook:// prefix)
                   const webhookUrl = block.data.url.substring(10);
-                  
+
+                  // Validate webhook URL to prevent SSRF attacks
+                  if (!isValidWebhookUrl(webhookUrl)) {
+                    alert('Invalid webhook URL. Only whitelisted domains are allowed for security.');
+                    return;
+                  }
+
                   // Trigger webhook
                   fetch(webhookUrl, {
                     method: 'POST',

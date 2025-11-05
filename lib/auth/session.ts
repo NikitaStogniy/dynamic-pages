@@ -3,7 +3,23 @@ import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { SESSION_CONFIG } from '@/lib/constants';
 
-const secretKey = process.env.SESSION_SECRET || 'default-secret-key-change-in-production';
+// Validate SESSION_SECRET exists and meets minimum requirements
+const secretKey = process.env.SESSION_SECRET;
+
+if (!secretKey) {
+  throw new Error(
+    'SESSION_SECRET environment variable is required. ' +
+    'Generate a secure secret with: openssl rand -base64 32'
+  );
+}
+
+if (secretKey.length < 32) {
+  throw new Error(
+    'SESSION_SECRET must be at least 32 characters long for security. ' +
+    'Current length: ' + secretKey.length
+  );
+}
+
 const encodedKey = new TextEncoder().encode(secretKey);
 
 export type SessionPayload = {
@@ -19,6 +35,8 @@ export async function encrypt(payload: SessionPayload): Promise<string> {
   return new SignJWT(payload as any)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
+    .setIssuer('dynamic-pages-app')
+    .setAudience('dynamic-pages-users')
     .setExpirationTime(payload.expiresAt)
     .sign(encodedKey);
 }
@@ -32,6 +50,8 @@ export async function decrypt(token: string | undefined): Promise<SessionPayload
   try {
     const { payload } = await jwtVerify(token, encodedKey, {
       algorithms: ['HS256'],
+      issuer: 'dynamic-pages-app',
+      audience: 'dynamic-pages-users',
     });
 
     return payload as unknown as SessionPayload;

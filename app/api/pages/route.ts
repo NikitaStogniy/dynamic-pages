@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { title, slug, content } = validationResult.data;
+    const { title, slug, content, isPublished, qrExpiryMinutes } = validationResult.data;
 
     // Check if slug already exists
     const existingPage = await db.query.pages.findFirst({
@@ -107,6 +107,8 @@ export async function POST(request: NextRequest) {
         title,
         slug: availableSlug,
         content: content || {},
+        isPublished: isPublished ?? false,
+        qrExpiryMinutes: qrExpiryMinutes ?? null,
       };
 
       const [createdPage] = await db.insert(pages).values(newPage).returning();
@@ -118,6 +120,8 @@ export async function POST(request: NextRequest) {
       title,
       slug,
       content: content || {},
+      isPublished: isPublished ?? false,
+      qrExpiryMinutes: qrExpiryMinutes ?? null,
     };
 
     const [createdPage] = await db.insert(pages).values(newPage).returning();

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import EditorJSRenderer from '@/components/editor/EditorJSRenderer';
-import { OutputData } from '@editorjs/editorjs';
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import EditorJSRenderer from "@/components/editor/EditorJSRenderer";
+import { OutputData } from "@editorjs/editorjs";
 
 interface PageData {
   id: number;
@@ -31,7 +31,7 @@ export default function AccessPage() {
 
         if (!response.ok) {
           const data = await response.json();
-          setError(data.error || 'Access denied');
+          setError(data.error || "Access denied");
           setLoading(false);
           return;
         }
@@ -41,8 +41,8 @@ export default function AccessPage() {
         setExpiresAt(new Date(data.expiresAt));
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching page:', err);
-        setError('Failed to load page');
+        console.error("Error fetching page:", err);
+        setError("Failed to load page");
         setLoading(false);
       }
     };
@@ -60,7 +60,7 @@ export default function AccessPage() {
 
       if (remaining <= 0) {
         setTimeRemaining(0);
-        setError('This link has expired');
+        setError("This link has expired");
         return;
       }
 
@@ -80,9 +80,11 @@ export default function AccessPage() {
     const seconds = totalSeconds % 60;
 
     if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+        .toString()
+        .padStart(2, "0")}`;
     }
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
   if (loading) {
@@ -99,7 +101,7 @@ export default function AccessPage() {
         <div className="max-w-md w-full p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl text-center">
           <div className="text-6xl mb-4">⏰</div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Access Expired
+            Доступ закончился
           </h1>
           <p className="text-gray-600 dark:text-gray-400">{error}</p>
         </div>
@@ -110,7 +112,7 @@ export default function AccessPage() {
   if (!pageData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Page not found</div>
+        <div className="text-lg">Сраница не найдена</div>
       </div>
     );
   }
@@ -122,7 +124,9 @@ export default function AccessPage() {
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">⏱️ Time Remaining:</span>
-            <span className="text-xl font-bold font-mono">{formatTime(timeRemaining)}</span>
+            <span className="text-xl font-bold font-mono">
+              {formatTime(timeRemaining)}
+            </span>
           </div>
           <div className="text-xs opacity-90">
             This page will expire automatically

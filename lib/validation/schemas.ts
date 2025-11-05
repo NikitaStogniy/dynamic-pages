@@ -19,6 +19,13 @@ export const createPageSchema = z.object({
     time: z.number().optional(),
     version: z.string().optional(),
   }).optional().default({ blocks: [] }),
+  isPublished: z.boolean().default(false),
+  qrExpiryMinutes: z.number()
+    .int('QR expiry must be an integer')
+    .min(1, 'QR expiry must be at least 1 minute')
+    .max(1440, 'QR expiry must be at most 1440 minutes (24 hours)')
+    .nullable()
+    .optional(),
 });
 
 export type CreatePageInput = z.infer<typeof createPageSchema>;
@@ -37,6 +44,13 @@ export const updatePageSchema = z.object({
     time: z.number().optional(),
     version: z.string().optional(),
   }).optional(),
+  isPublished: z.boolean().optional(),
+  qrExpiryMinutes: z.number()
+    .int('QR expiry must be an integer')
+    .min(1, 'QR expiry must be at least 1 minute')
+    .max(1440, 'QR expiry must be at most 1440 minutes (24 hours)')
+    .nullable()
+    .optional(),
 });
 
 export type UpdatePageInput = z.infer<typeof updatePageSchema>;

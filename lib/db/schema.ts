@@ -27,6 +27,7 @@ export const pages = pgTable('pages', {
   title: text('title').notNull(),
   slug: text('slug').unique().notNull(),
   content: jsonb('content').notNull().default({}),
+  isPublished: boolean('is_published').default(false).notNull(),
   qrExpiryMinutes: integer('qr_expiry_minutes'), // null = no expiry, number = minutes until expiry
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

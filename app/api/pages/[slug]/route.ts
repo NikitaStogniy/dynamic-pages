@@ -27,8 +27,12 @@ export async function GET(
     }
 
     // Fall back to public page if not authenticated or page not found for user
+    // Only return pages that are published
     const publicPage = await db.query.pages.findFirst({
-      where: eq(pages.slug, resolvedParams.slug),
+      where: and(
+        eq(pages.slug, resolvedParams.slug),
+        eq(pages.isPublished, true)
+      ),
     });
 
     if (!publicPage) {
@@ -65,7 +69,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { title, content, qrExpiryMinutes } = body;
+    const { title, content, isPublished, qrExpiryMinutes } = body;
 
     const existingPage = await db.query.pages.findFirst({
       where: and(
@@ -86,6 +90,7 @@ export async function PUT(
       .set({
         title: title || existingPage.title,
         content: content !== undefined ? content : existingPage.content,
+        isPublished: isPublished !== undefined ? isPublished : existingPage.isPublished,
         qrExpiryMinutes: qrExpiryMinutes !== undefined ? qrExpiryMinutes : existingPage.qrExpiryMinutes,
         updatedAt: new Date(),
       })

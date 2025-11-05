@@ -17,6 +17,7 @@ interface Page {
   title: string;
   slug: string;
   content: OutputData;
+  isPublished: boolean;
   createdAt: string;
   updatedAt: string;
 }

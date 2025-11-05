@@ -6,11 +6,13 @@ export interface CreatePageData {
   title: string;
   content: OutputData;
   slug?: string;
+  qrExpiryMinutes?: number | null;
 }
 
 export interface UpdatePageData {
   title?: string;
   content?: OutputData;
+  qrExpiryMinutes?: number | null;
 }
 
 class PagesController {
@@ -61,11 +63,12 @@ class PagesController {
    */
   async createPage(data: CreatePageData): Promise<Page> {
     this.validatePageData(data);
-    
+
     const pageData = {
       title: data.title.trim(),
       slug: data.slug || this.generateSlug(),
       content: data.content || {},
+      qrExpiryMinutes: data.qrExpiryMinutes,
     };
 
     return pagesService.createPage(pageData);
@@ -84,13 +87,17 @@ class PagesController {
     }
 
     const updateData: UpdatePageData = {};
-    
+
     if (data.title !== undefined) {
       updateData.title = data.title.trim();
     }
-    
+
     if (data.content !== undefined) {
       updateData.content = data.content;
+    }
+
+    if (data.qrExpiryMinutes !== undefined) {
+      updateData.qrExpiryMinutes = data.qrExpiryMinutes;
     }
 
     return pagesService.updatePage(slug, updateData);

@@ -12,9 +12,10 @@ interface PageEditorProps {
 export default function PageEditor({ slug }: PageEditorProps) {
   const { data: page, isLoading, error: fetchError } = usePage(slug);
   const updatePage = useUpdatePage(slug);
-  
+
   const [title, setTitle] = useState('');
   const [content, setContent] = useState<OutputData>(ensureValidEditorData());
+  const [qrExpiryMinutes, setQrExpiryMinutes] = useState<number | null>(null);
   const [error, setError] = useState('');
 
   // Update local state when page data is loaded
@@ -24,6 +25,7 @@ export default function PageEditor({ slug }: PageEditorProps) {
       if (page.content && typeof page.content === 'object') {
           setContent(ensureValidEditorData(page.content));
       }
+      setQrExpiryMinutes(page.qrExpiryMinutes || null);
     }
   }, [page]);
 
@@ -38,10 +40,11 @@ export default function PageEditor({ slug }: PageEditorProps) {
     try {
       await updatePage.mutateAsync({
         title,
-        content
+        content,
+        qrExpiryMinutes: qrExpiryMinutes || undefined,
       });
       // Show success message instead of redirecting
-      setError(''); 
+      setError('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
@@ -84,6 +87,57 @@ export default function PageEditor({ slug }: PageEditorProps) {
           placeholder="Enter page title"
           required
         />
+      </div>
+
+      <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg p-4">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          ⏱️ Таймер QR-кода (Опционально)
+        </label>
+        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+          Установите, как долго QR-ссылки остаются активными. Оставьте пустым для постоянных ссылок.
+        </p>
+        <div className="flex gap-2 items-center">
+          <input
+            type="number"
+            min="1"
+            max="1440"
+            value={qrExpiryMinutes || ''}
+            onChange={(e) => setQrExpiryMinutes(e.target.value ? parseInt(e.target.value) : null)}
+            className="w-32 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            placeholder="30"
+          />
+          <span className="text-sm text-gray-600 dark:text-gray-400">минут</span>
+        </div>
+        <div className="mt-2 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setQrExpiryMinutes(15)}
+            className="px-2 py-1 text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
+          >
+            15 мин
+          </button>
+          <button
+            type="button"
+            onClick={() => setQrExpiryMinutes(30)}
+            className="px-2 py-1 text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
+          >
+            30 мин
+          </button>
+          <button
+            type="button"
+            onClick={() => setQrExpiryMinutes(60)}
+            className="px-2 py-1 text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
+          >
+            1 час
+          </button>
+          <button
+            type="button"
+            onClick={() => setQrExpiryMinutes(null)}
+            className="px-2 py-1 text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
+          >
+            Без лимита
+          </button>
+        </div>
       </div>
 
       <div>
