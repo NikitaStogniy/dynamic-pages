@@ -1,6 +1,6 @@
 import cron from 'node-cron';
-import { db, cronJobs, pages } from '@/lib/db';
-import { eq, lt } from 'drizzle-orm';
+import { db, cronJobs } from '@/lib/db';
+import { eq } from 'drizzle-orm';
 
 const runningJobs = new Map<string, cron.ScheduledTask>();
 

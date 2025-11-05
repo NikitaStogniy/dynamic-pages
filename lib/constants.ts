@@ -37,7 +37,7 @@ export const UPLOAD_CONFIG = {
     'image/png',
     'image/gif',
     'image/webp',
-  ],
+  ] as const,
   MAX_SIZE: USER_LIMITS.MAX_FILE_SIZE,
 } as const;
 

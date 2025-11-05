@@ -15,7 +15,7 @@ export const createPageSchema = z.object({
       'Invalid slug format'
     ),
   content: z.object({
-    blocks: z.array(z.any()),
+    blocks: z.array(z.record(z.unknown())),
     time: z.number().optional(),
     version: z.string().optional(),
   }).optional().default({ blocks: [] }),
@@ -40,7 +40,7 @@ export const updatePageSchema = z.object({
     .trim()
     .optional(),
   content: z.object({
-    blocks: z.array(z.any()),
+    blocks: z.array(z.record(z.unknown())),
     time: z.number().optional(),
     version: z.string().optional(),
   }).optional(),

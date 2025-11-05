@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate file type (images only)
-    if (!UPLOAD_CONFIG.ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    if (!(UPLOAD_CONFIG.ALLOWED_IMAGE_TYPES as readonly string[]).includes(file.type)) {
       return NextResponse.json({ error: 'Invalid file type. Only images are allowed' }, { status: 400 });
     }
 

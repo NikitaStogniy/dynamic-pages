@@ -120,9 +120,9 @@ class PagesController {
     try {
       await pagesService.getPageBySlug(slug);
       return false;
-    } catch (error: any) {
+    } catch (error) {
       // If we get a 404, the slug is available
-      if (error?.status === 404) {
+      if (error && typeof error === 'object' && 'status' in error && error.status === 404) {
         return true;
       }
       // For any other error, re-throw it

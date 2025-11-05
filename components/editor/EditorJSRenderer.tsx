@@ -100,25 +100,26 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
         }
         
         // Handle both string items and object items (newer Editor.js format)
-        const renderListItem = (item: any) => {
+        const renderListItem = (item: unknown) => {
           // If item is a string, use it directly
           if (typeof item === 'string') {
             return item;
           }
           // If item is an object with content property (newer format)
           if (item && typeof item === 'object') {
-            return item.content || item.text || String(item);
+            const obj = item as Record<string, unknown>;
+            return obj.content || obj.text || String(item);
           }
           // Fallback to string conversion
           return String(item);
         };
-        
+
         return (
-          <ListTag 
-            key={key} 
+          <ListTag
+            key={key}
             className={`mb-4 ${block.data.style === 'ordered' ? 'list-decimal' : 'list-disc'} list-inside`}
           >
-            {block.data.items.map((item: any, i: number) => {
+            {(block.data.items as unknown[]).map((item: unknown, i: number) => {
               const content = renderListItem(item);
 
               if (process.env.NODE_ENV === 'development') {

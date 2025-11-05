@@ -32,7 +32,11 @@ export type SessionPayload = {
  * Encrypts session payload into a JWT token
  */
 export async function encrypt(payload: SessionPayload): Promise<string> {
-  return new SignJWT(payload as any)
+  return new SignJWT({
+    userId: payload.userId,
+    email: payload.email,
+    expiresAt: payload.expiresAt.toISOString(),
+  })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setIssuer('dynamic-pages-app')
@@ -54,7 +58,12 @@ export async function decrypt(token: string | undefined): Promise<SessionPayload
       audience: 'dynamic-pages-users',
     });
 
-    return payload as unknown as SessionPayload;
+    // Convert the payload back to SessionPayload format
+    return {
+      userId: payload.userId as number,
+      email: payload.email as string,
+      expiresAt: new Date(payload.expiresAt as string),
+    };
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
       console.error('Failed to verify session:', error);

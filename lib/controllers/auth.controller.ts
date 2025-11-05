@@ -3,6 +3,7 @@ import { authService } from '@/lib/services/auth.service';
 export interface AuthUser {
   id: number;
   email: string;
+  emailVerified: boolean;
 }
 
 class AuthController {
@@ -70,8 +71,9 @@ class AuthController {
       return {
         id: response.user.id,
         email: response.user.email,
+        emailVerified: response.user.emailVerified,
       };
-    } catch (error) {
+    } catch (_error) {
       // Session invalid or expired
       return null;
     }

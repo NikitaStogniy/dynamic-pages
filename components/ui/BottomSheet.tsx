@@ -25,7 +25,7 @@ export default function BottomSheet({ isOpen, onClose, children, title }: Bottom
   const prevIsOpen = usePrevious(isOpen);
   const controls = useAnimation();
 
-  function onDragEnd(event: any, info: any) {
+  function onDragEnd(_event: MouseEvent | TouchEvent | PointerEvent, info: { velocity: { y: number }; point: { y: number } }) {
     const shouldClose = 
       info.velocity.y > 20 || (info.velocity.y >= 0 && info.point.y > 45);
     if (shouldClose) {

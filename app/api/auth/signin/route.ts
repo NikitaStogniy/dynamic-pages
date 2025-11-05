@@ -43,7 +43,7 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid input', details: error.errors },
+        { error: 'Invalid input', details: error.issues },
         { status: 400 }
       );
     }
