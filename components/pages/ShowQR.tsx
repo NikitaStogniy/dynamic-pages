@@ -14,6 +14,8 @@ export default function ShowQR({ pageSlug, pageTitle }: ShowQRProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const [accessUrl, setAccessUrl] = useState<string>('');
+  const [hasExpiry, setHasExpiry] = useState(false);
 
   useEffect(() => {
     if (isOpen && !qrCodeData) {
@@ -24,7 +26,26 @@ export default function ShowQR({ pageSlug, pageTitle }: ShowQRProps) {
   const generateQR = async () => {
     setLoading(true);
     try {
-      const pageUrl = `${window.location.origin}/p/${pageSlug}`;
+      // First, try to generate an access token
+      const tokenResponse = await fetch(`/api/pages/${pageSlug}/access-token`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      let pageUrl = `${window.location.origin}/p/${pageSlug}`;
+      let useExpiry = false;
+
+      if (tokenResponse.ok) {
+        const data = await tokenResponse.json();
+        if (data.token) {
+          // If token exists, use access URL
+          pageUrl = `${window.location.origin}/access/${data.token}`;
+          useExpiry = true;
+        }
+      }
+
+      setAccessUrl(pageUrl);
+      setHasExpiry(useExpiry);
       const qrCode = await generateQRCode(pageUrl);
       setQrCodeData(qrCode);
     } catch (error) {
@@ -61,11 +82,16 @@ export default function ShowQR({ pageSlug, pageTitle }: ShowQRProps) {
                 className="border-2 border-gray-200 rounded-lg p-4 bg-white"
               />
               <div className="text-center space-y-2">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Scan this QR code to view the page
                 </p>
-                <p className="text-xs text-gray-500 font-mono bg-gray-50 px-3 py-1 rounded">
-                  /p/{pageSlug}
+                {hasExpiry && (
+                  <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">
+                    ⏱️ This link has a time limit
+                  </p>
+                )}
+                <p className="text-xs text-gray-500 dark:text-gray-500 font-mono bg-gray-50 dark:bg-gray-800 px-3 py-1 rounded break-all">
+                  {accessUrl.replace(window.location.origin, '')}
                 </p>
               </div>
               <button

@@ -65,7 +65,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { title, content } = body;
+    const { title, content, qrExpiryMinutes } = body;
 
     const existingPage = await db.query.pages.findFirst({
       where: and(
@@ -86,6 +86,7 @@ export async function PUT(
       .set({
         title: title || existingPage.title,
         content: content !== undefined ? content : existingPage.content,
+        qrExpiryMinutes: qrExpiryMinutes !== undefined ? qrExpiryMinutes : existingPage.qrExpiryMinutes,
         updatedAt: new Date(),
       })
       .where(and(

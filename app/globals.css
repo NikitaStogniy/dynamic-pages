@@ -9,17 +9,15 @@
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-lora), Georgia, serif;
 }
 
 /* EditorJS Styles */
@@ -76,11 +74,11 @@ h3.ce-header {
 }
 
 .cdx-quote {
-  @apply border-l-4 border-gray-300 pl-4 italic my-4;
+  @apply border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic my-4;
 }
 
 .cdx-warning {
-  @apply bg-yellow-50 border-l-4 border-yellow-400 p-4 my-4;
+  @apply bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 dark:border-yellow-600 p-4 my-4;
 }
 
 .cdx-delimiter {
@@ -88,7 +86,7 @@ h3.ce-header {
 }
 
 .ce-code__textarea {
-  @apply bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm;
+  @apply bg-gray-900 dark:bg-gray-950 text-gray-100 p-4 rounded-lg font-mono text-sm;
 }
 
 .cdx-table {
@@ -96,5 +94,5 @@ h3.ce-header {
 }
 
 .cdx-table__cell {
-  @apply border border-gray-300 p-2;
+  @apply border border-gray-300 dark:border-gray-600 p-2;
 }

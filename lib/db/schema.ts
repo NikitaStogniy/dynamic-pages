@@ -27,9 +27,20 @@ export const pages = pgTable('pages', {
   title: text('title').notNull(),
   slug: text('slug').unique().notNull(),
   content: jsonb('content').notNull().default({}),
+  qrExpiryMinutes: integer('qr_expiry_minutes'), // null = no expiry, number = minutes until expiry
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+export const pageAccessTokens = pgTable('page_access_tokens', {
+  id: serial('id').primaryKey(),
+  pageId: integer('page_id').notNull().references(() => pages.id, { onDelete: 'cascade' }),
+  token: text('token').unique().notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  tokenIdx: uniqueIndex('page_token_idx').on(table.token),
+}));
 
 export const cronJobs = pgTable('cron_jobs', {
   id: serial('id').primaryKey(),
@@ -70,6 +81,8 @@ export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
 export type Page = typeof pages.$inferSelect;
 export type NewPage = typeof pages.$inferInsert;
+export type PageAccessToken = typeof pageAccessTokens.$inferSelect;
+export type NewPageAccessToken = typeof pageAccessTokens.$inferInsert;
 export type CronJob = typeof cronJobs.$inferSelect;
 export type NewCronJob = typeof cronJobs.$inferInsert;
 export type TelegramUser = typeof telegramUsers.$inferSelect;
