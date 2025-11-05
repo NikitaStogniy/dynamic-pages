@@ -12,6 +12,7 @@ export interface AuthResponse {
   user: {
     id: number;
     email: string;
+    emailVerified?: boolean;
   };
 }
 
@@ -19,6 +20,7 @@ export interface SessionResponse {
   user: {
     id: number;
     email: string;
+    emailVerified?: boolean;
   };
   expiresAt: string;
 }

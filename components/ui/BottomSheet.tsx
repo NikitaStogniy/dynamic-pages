@@ -11,7 +11,7 @@ interface BottomSheetProps {
 }
 
 function usePrevious<T>(value: T): T | undefined {
-  const previousValueRef = useRef<T>();
+  const previousValueRef = useRef<T | undefined>(undefined);
 
   useEffect(() => {
     previousValueRef.current = value;

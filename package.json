@@ -38,6 +38,7 @@
     "bcryptjs": "^3.0.2",
     "drizzle-orm": "^0.44.5",
     "framer-motion": "^12.23.12",
+    "grammy": "^1.38.3",
     "highlight.js": "^11.11.1",
     "isomorphic-dompurify": "^2.26.0",
     "jose": "^6.1.0",

@@ -233,8 +233,11 @@ export default class ButtonTool implements BlockTool {
     }
   }
 
-  renderSettings(): HTMLElement[] {
-    return this.settings.map((setting) => {
+  renderSettings(): HTMLElement {
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('cdx-settings-buttons');
+
+    this.settings.forEach((setting) => {
       const button = document.createElement('div');
       button.classList.add('cdx-settings-button');
       button.innerHTML = setting.icon;
@@ -253,8 +256,10 @@ export default class ButtonTool implements BlockTool {
         }
       });
 
-      return button;
+      wrapper.appendChild(button);
     });
+
+    return wrapper;
   }
 
   save(blockContent: HTMLElement): ButtonData {

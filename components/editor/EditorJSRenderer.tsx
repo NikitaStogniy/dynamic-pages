@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { OutputData } from '@/lib/types/editor';
 import DOMPurify from 'isomorphic-dompurify';
 
@@ -66,10 +67,10 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
 
     switch (block.type) {
       case 'header':
-        const HeaderTag = `h${block.data.level}` as keyof JSX.IntrinsicElements;
+        const HeaderTag = `h${block.data.level}` as React.ElementType;
         return (
-          <HeaderTag 
-            key={key} 
+          <HeaderTag
+            key={key}
             className={`font-bold ${
               block.data.level === 1 ? 'text-4xl mb-4' :
               block.data.level === 2 ? 'text-3xl mb-3' :
@@ -78,16 +79,16 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
               block.data.level === 5 ? 'text-lg mb-2' :
               'text-base mb-2'
             }`}
-            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.data.text) }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(String(block.data.text || '')) }}
           />
         );
 
       case 'paragraph':
         return (
-          <p 
-            key={key} 
+          <p
+            key={key}
             className="mb-4 leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.data.text) }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(String(block.data.text || '')) }}
           />
         );
 
@@ -100,7 +101,7 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
         }
         
         // Handle both string items and object items (newer Editor.js format)
-        const renderListItem = (item: unknown) => {
+        const renderListItem = (item: unknown): string => {
           // If item is a string, use it directly
           if (typeof item === 'string') {
             return item;
@@ -108,7 +109,7 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
           // If item is an object with content property (newer format)
           if (item && typeof item === 'object') {
             const obj = item as Record<string, unknown>;
-            return obj.content || obj.text || String(item);
+            return String(obj.content || obj.text || item);
           }
           // Fallback to string conversion
           return String(item);
@@ -140,7 +141,7 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
       case 'checklist':
         return (
           <div key={key} className="mb-4">
-            {block.data.items.map((item: { text: string; checked: boolean }, i: number) => (
+            {(block.data.items as Array<{ text: string; checked: boolean }>).map((item, i: number) => (
               <div key={`${key}-${i}`} className="flex items-start mb-2">
                 <input
                   type="checkbox"
@@ -148,7 +149,7 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
                   disabled
                   className="mt-1 mr-2"
                 />
-                <span 
+                <span
                   className={item.checked ? 'line-through text-gray-500' : ''}
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.text) }}
                 />
@@ -160,13 +161,13 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
       case 'quote':
         return (
           <blockquote key={key} className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 py-2 mb-4 italic">
-            <p 
+            <p
               className="mb-2"
-              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.data.text) }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(String(block.data.text || '')) }}
             />
-            {block.data.caption && (
+            {!!block.data.caption && (
               <cite className="text-sm text-gray-600 dark:text-gray-400">
-                — {block.data.caption}
+                — {String(block.data.caption)}
               </cite>
             )}
           </blockquote>
@@ -176,7 +177,7 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
         return (
           <pre key={key} className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg mb-4 overflow-x-auto">
             <code className="text-sm font-mono">
-              {block.data.code}
+              {String(block.data.code || '')}
             </code>
           </pre>
         );
@@ -186,7 +187,8 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
 
       case 'image':
         // Validate image data structure
-        if (!block.data?.file?.url) {
+        const imageData = block.data as { file?: { url?: string }; caption?: string };
+        if (!imageData.file?.url) {
           if (process.env.NODE_ENV === 'development') {
             console.warn('Invalid image block data:', block);
           }
@@ -202,12 +204,12 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
         return (
           <figure key={key} className="mb-4">
             <img
-              src={block.data.file.url}
-              alt={block.data.caption || 'Image'}
+              src={String(imageData.file.url)}
+              alt={String(imageData.caption || 'Image')}
               className="w-full rounded-lg"
               onError={(e) => {
                 if (process.env.NODE_ENV === 'development') {
-                  console.error('Failed to load image:', block.data.file.url);
+                  console.error('Failed to load image:', imageData.file?.url);
                 }
                 e.currentTarget.style.display = 'none';
                 const parent = e.currentTarget.parentElement;
@@ -219,9 +221,9 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
                 }
               }}
             />
-            {block.data.caption && (
+            {!!imageData.caption && (
               <figcaption className="text-sm text-gray-600 dark:text-gray-400 mt-2 text-center">
-                {block.data.caption}
+                {String(imageData.caption)}
               </figcaption>
             )}
           </figure>
@@ -232,10 +234,10 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
           <div key={key} className="overflow-x-auto mb-4">
             <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600">
               <tbody>
-                {block.data.content.map((row: string[], rowIndex: number) => (
+                {(block.data.content as string[][]).map((row, rowIndex: number) => (
                   <tr key={`${key}-row-${rowIndex}`}>
-                    {row.map((cell: string, cellIndex: number) => (
-                      <td 
+                    {row.map((cell, cellIndex: number) => (
+                      <td
                         key={`${key}-cell-${rowIndex}-${cellIndex}`}
                         className="border border-gray-300 dark:border-gray-600 px-4 py-2"
                         dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(cell) }}
@@ -249,20 +251,21 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
         );
 
       case 'linkTool':
+        const linkData = block.data as { link?: string; meta?: { title?: string; description?: string } };
         return (
-          <a 
+          <a
             key={key}
-            href={block.data.link}
+            href={String(linkData.link || '#')}
             target="_blank"
             rel="noopener noreferrer"
             className="block mb-4 p-4 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
           >
             <div className="font-semibold text-blue-600 dark:text-blue-400">
-              {block.data.meta?.title || block.data.link}
+              {String(linkData.meta?.title || linkData.link || '')}
             </div>
-            {block.data.meta?.description && (
+            {!!linkData.meta?.description && (
               <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                {block.data.meta.description}
+                {String(linkData.meta.description)}
               </div>
             )}
           </a>
@@ -272,20 +275,20 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
         return (
           <div key={key} className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 dark:border-yellow-600">
             <div className="font-semibold text-yellow-800 dark:text-yellow-300">
-              {block.data.title}
+              {String(block.data.title || '')}
             </div>
             <div className="text-yellow-700 dark:text-yellow-400 mt-1">
-              {block.data.message}
+              {String(block.data.message || '')}
             </div>
           </div>
         );
 
       case 'raw':
         return (
-          <div 
+          <div
             key={key}
             className="mb-4"
-            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(block.data.html) }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(String(block.data.html || '')) }}
           />
         );
 
@@ -293,49 +296,58 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
         return (
           <div key={key} className="mb-4">
             <iframe
-              src={block.data.embed}
-              width={block.data.width || '100%'}
-              height={block.data.height || 400}
+              src={String(block.data.embed || '')}
+              width={String(block.data.width || '100%')}
+              height={Number(block.data.height) || 400}
               frameBorder="0"
               allowFullScreen
               className="w-full rounded-lg"
             />
-            {block.data.caption && (
+            {!!block.data.caption && (
               <div className="text-sm text-gray-600 dark:text-gray-400 mt-2 text-center">
-                {block.data.caption}
+                {String(block.data.caption)}
               </div>
             )}
           </div>
         );
 
       case 'button':
-        const buttonStyles = {
+        const buttonStyles: Record<string, string> = {
           primary: 'bg-blue-500 hover:bg-blue-600 text-white border-2 border-blue-500 hover:border-blue-600',
           secondary: 'bg-gray-500 hover:bg-gray-600 text-white border-2 border-gray-500 hover:border-gray-600',
           outline: 'bg-transparent hover:bg-blue-500 text-blue-500 hover:text-white border-2 border-blue-500',
           danger: 'bg-red-500 hover:bg-red-600 text-white border-2 border-red-500 hover:border-red-600'
         };
 
-        const alignmentClasses = {
+        const alignmentClasses: Record<string, string> = {
           left: 'text-left',
           center: 'text-center',
           right: 'text-right'
         };
 
+        const buttonData = block.data as {
+          url?: string;
+          text?: string;
+          style?: string;
+          alignment?: string;
+          openInNewTab?: boolean;
+        };
+
         return (
-          <div key={key} className={`mb-4 ${alignmentClasses[block.data.alignment || 'center']}`}>
+          <div key={key} className={`mb-4 ${alignmentClasses[String(buttonData.alignment || 'center')]}`}>
             <a
-              href={block.data.url || '#'}
-              target={block.data.openInNewTab !== false ? '_blank' : '_self'}
-              rel={block.data.openInNewTab !== false ? 'noopener noreferrer' : undefined}
+              href={String(buttonData.url || '#')}
+              target={buttonData.openInNewTab !== false ? '_blank' : '_self'}
+              rel={buttonData.openInNewTab !== false ? 'noopener noreferrer' : undefined}
               className={`inline-block px-6 py-3 rounded-md font-medium transition-all duration-300 ${
-                buttonStyles[block.data.style || 'primary']
+                buttonStyles[String(buttonData.style || 'primary')]
               }`}
               onClick={(e) => {
-                if (block.data.url && block.data.url.startsWith('webhook://')) {
+                const url = String(buttonData.url || '');
+                if (url && url.startsWith('webhook://')) {
                   e.preventDefault();
                   // Extract webhook URL (remove webhook:// prefix)
-                  const webhookUrl = block.data.url.substring(10);
+                  const webhookUrl = url.substring(10);
 
                   // Validate webhook URL to prevent SSRF attacks
                   if (!isValidWebhookUrl(webhookUrl)) {
@@ -350,7 +362,7 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
                       'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                      buttonText: block.data.text,
+                      buttonText: String(buttonData.text || ''),
                       timestamp: new Date().toISOString(),
                       pageUrl: window.location.href,
                     })
@@ -366,7 +378,7 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
                 }
               }}
             >
-              {block.data.text || 'Click me'}
+              {String(buttonData.text || 'Click me')}
             </a>
           </div>
         );
@@ -381,7 +393,7 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
         if (block.data?.text) {
           return (
             <p key={key} className="mb-4 leading-relaxed">
-              {block.data.text}
+              {String(block.data.text)}
             </p>
           );
         }

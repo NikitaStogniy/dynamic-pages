@@ -1,8 +1,8 @@
-import cron from 'node-cron';
+import cron, { type ScheduledTask } from 'node-cron';
 import { db, cronJobs } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 
-const runningJobs = new Map<string, cron.ScheduledTask>();
+const runningJobs = new Map<string, ScheduledTask>();
 
 export function initializeCronJobs() {
   console.log('Initializing cron jobs...');

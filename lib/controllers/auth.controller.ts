@@ -38,6 +38,7 @@ class AuthController {
     return {
       id: response.user.id,
       email: response.user.email,
+      emailVerified: response.user.emailVerified || false,
     };
   }
 
@@ -59,6 +60,7 @@ class AuthController {
     return {
       id: response.user.id,
       email: response.user.email,
+      emailVerified: response.user.emailVerified || false,
     };
   }
 
@@ -71,7 +73,7 @@ class AuthController {
       return {
         id: response.user.id,
         email: response.user.email,
-        emailVerified: response.user.emailVerified,
+        emailVerified: response.user.emailVerified || false,
       };
     } catch (_error) {
       // Session invalid or expired
