@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useCallback } from 'react';
 import { usePages, useDeletePage } from '@/lib/hooks/queries/usePages';
 import ShowQR from './ShowQR';
 import {Compass, Delete, LoaderCircle, Plus, SquarePen} from "lucide-react";
@@ -14,16 +15,16 @@ export function PagesList({ selectedSlug, onSelectPage }: PagesListProps) {
     const { data: pages = [], isLoading } = usePages();
     const deletePage = useDeletePage();
 
-    const handleDelete = async (slug: string) => {
+    const handleDelete = useCallback(async (slug: string) => {
         if (!confirm('Are you sure you want to delete this page?')) return;
-        
+
         try {
             await deletePage.mutateAsync(slug);
         } catch (error) {
             console.error('Error deleting page:', error);
             alert('Failed to delete page. Please try again.');
         }
-    };
+    }, [deletePage]);
 
     if (isLoading) {
         return (

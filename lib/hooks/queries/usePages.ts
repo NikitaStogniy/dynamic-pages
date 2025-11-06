@@ -15,6 +15,7 @@ export function usePages() {
   return useQuery({
     queryKey: PAGES_QUERY_KEY,
     queryFn: () => pagesController.getAllPages(),
+    staleTime: 5 * 60 * 1000, // 5 minutes - pages don't change often
   });
 }
 
@@ -26,6 +27,7 @@ export function usePage(slug: string) {
     queryKey: PAGE_QUERY_KEY(slug),
     queryFn: () => pagesController.getPageBySlug(slug),
     enabled: !!slug,
+    staleTime: 2 * 60 * 1000, // 2 minutes - page data is fairly stable
   });
 }
 
@@ -74,16 +76,26 @@ export function useUpdatePage(slug: string) {
       // Return a context with the previous and new page
       return { previousPage };
     },
+    onSuccess: (updatedPage) => {
+      // Update the single page cache with real data from server
+      queryClient.setQueryData(PAGE_QUERY_KEY(slug), updatedPage);
+
+      // Update the pages list cache without refetching
+      const previousPages = queryClient.getQueryData<Page[]>(PAGES_QUERY_KEY);
+      if (previousPages) {
+        queryClient.setQueryData<Page[]>(
+          PAGES_QUERY_KEY,
+          previousPages.map(page =>
+            page.slug === slug ? updatedPage : page
+          )
+        );
+      }
+    },
     onError: (err, data, context) => {
       // If the mutation fails, use the context to roll back
       if (context?.previousPage) {
         queryClient.setQueryData(PAGE_QUERY_KEY(slug), context.previousPage);
       }
-    },
-    onSettled: () => {
-      // Always refetch after error or success
-      queryClient.invalidateQueries({ queryKey: PAGE_QUERY_KEY(slug) });
-      queryClient.invalidateQueries({ queryKey: PAGES_QUERY_KEY });
     },
   });
 }
@@ -135,6 +147,8 @@ export function useCheckSlugAvailability(slug: string) {
     queryKey: ['slug-availability', slug] as const,
     queryFn: () => pagesController.isSlugAvailable(slug),
     enabled: !!slug && slug.length > 0,
-    staleTime: 0, // Always fetch fresh data for availability checks
+    staleTime: 30 * 1000, // Cache for 30 seconds to reduce API calls
+    refetchOnWindowFocus: false, // Don't recheck when window regains focus
+    refetchOnMount: false, // Don't recheck on component remount
   });
 }

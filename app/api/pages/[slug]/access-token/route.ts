@@ -39,6 +39,11 @@ export async function POST(
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + page.qrExpiryMinutes);
 
+    // Delete old tokens for this page to prevent accumulation
+    await db
+      .delete(pageAccessTokens)
+      .where(eq(pageAccessTokens.pageId, page.id));
+
     // Store token in database
     const [accessToken] = await db
       .insert(pageAccessTokens)

@@ -9,10 +9,12 @@ function makeQueryClient() {
       queries: {
         // With SSR, we usually want to set some default staleTime
         // above 0 to avoid refetching immediately on the client
-        staleTime: 60 * 1000, // 1 minute
-        gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
+        staleTime: 5 * 60 * 1000, // 5 minutes - aggressive caching
+        gcTime: 10 * 60 * 1000, // 10 minutes cache time (formerly cacheTime)
         retry: 1,
-        refetchOnWindowFocus: false,
+        refetchOnWindowFocus: false, // Don't refetch when switching tabs
+        refetchOnMount: false, // Use cached data on mount if available
+        refetchOnReconnect: false, // Don't refetch on network reconnect
       },
       mutations: {
         retry: 0,

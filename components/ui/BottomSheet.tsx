@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { motion, useAnimation } from 'framer-motion';
+import { useCallback, memo } from 'react';
+import { motion } from 'framer-motion';
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -10,46 +10,14 @@ interface BottomSheetProps {
   title?: string;
 }
 
-function usePrevious<T>(value: T): T | undefined {
-  const previousValueRef = useRef<T | undefined>(undefined);
-
-  useEffect(() => {
-    previousValueRef.current = value;
-  }, [value]);
-
-  return previousValueRef.current;
-}
-
-export default function BottomSheet({ isOpen, onClose, children, title }: BottomSheetProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const prevIsOpen = usePrevious(isOpen);
-  const controls = useAnimation();
-
-  function onDragEnd(_event: MouseEvent | TouchEvent | PointerEvent, info: { velocity: { y: number }; point: { y: number } }) {
-    const shouldClose = 
+function BottomSheet({ isOpen, onClose, children, title }: BottomSheetProps) {
+  const onDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: { velocity: { y: number }; point: { y: number } }) => {
+    const shouldClose =
       info.velocity.y > 20 || (info.velocity.y >= 0 && info.point.y > 45);
     if (shouldClose) {
-      controls.start('hidden');
       onClose();
-    } else {
-      controls.start(isExpanded ? 'visible' : 'hidden');
     }
-  }
-
-  useEffect(() => {
-    if (isOpen && !prevIsOpen) {
-      controls.start('hidden');
-      setIsExpanded(false);
-    } else if (!isOpen && prevIsOpen) {
-      controls.start('closed');
-    } else if (isOpen) {
-      controls.start(isExpanded ? 'visible' : 'hidden');
-    }
-  }, [controls, isOpen, isExpanded, prevIsOpen]);
-
-  function toggleExpand() {
-    setIsExpanded(!isExpanded);
-  }
+  }, [onClose]);
 
   if (!isOpen) return null;
 
@@ -62,17 +30,13 @@ export default function BottomSheet({ isOpen, onClose, children, title }: Bottom
       <motion.div
         drag="y"
         onDragEnd={onDragEnd}
-        initial="closed"
-        animate={controls}
+        initial={{ y: '100%' }}
+        animate={{ y: '30%' }}
+        exit={{ y: '100%' }}
         transition={{
           type: 'spring',
           damping: 40,
           stiffness: 400
-        }}
-        variants={{
-          visible: { y: '10%' },
-          hidden: { y: '70%' },
-          closed: { y: '100%' }
         }}
         dragConstraints={{ top: 0 }}
         dragElastic={0.2}
@@ -82,9 +46,8 @@ export default function BottomSheet({ isOpen, onClose, children, title }: Bottom
         }}
       >
         {/* Drag Handle */}
-        <div 
+        <div
           className="flex items-end justify-center h-6 cursor-row-resize hover:bg-gray-50 transition-colors"
-          onDoubleClick={toggleExpand}
         >
           <div className="w-12 h-1 bg-gray-300 rounded-full mb-2 hover:bg-gray-400 transition-colors" />
         </div>
@@ -92,30 +55,14 @@ export default function BottomSheet({ isOpen, onClose, children, title }: Bottom
         {/* Header */}
         <div className="flex items-center justify-between h-14 px-4 border-b border-gray-200">
           <span className="text-lg font-semibold">{title || 'Bottom Sheet'}</span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={toggleExpand}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
-            >
-              <svg 
-                className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-              <span>{isExpanded ? 'Collapse' : 'Expand'}</span>
-            </button>
-            <button
-              onClick={onClose}
-              className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-md transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-md transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         {/* Content */}
@@ -126,3 +73,5 @@ export default function BottomSheet({ isOpen, onClose, children, title }: Bottom
     </>
   );
 }
+
+export default memo(BottomSheet);
