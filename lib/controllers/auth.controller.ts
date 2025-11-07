@@ -1,4 +1,4 @@
-import { authService } from '@/lib/services/auth.service';
+import { authService } from "@/lib/services/auth.service";
 
 export interface AuthUser {
   id: number;
@@ -20,7 +20,10 @@ class AuthController {
    */
   validatePassword(password: string): { valid: boolean; message?: string } {
     if (password.length < 6) {
-      return { valid: false, message: 'Password must be at least 6 characters long' };
+      return {
+        valid: false,
+        message: "Password must be at least 6 characters long",
+      };
     }
     return { valid: true };
   }
@@ -30,7 +33,7 @@ class AuthController {
    */
   async signIn(email: string, password: string): Promise<AuthUser> {
     if (!this.validateEmail(email)) {
-      throw new Error('Invalid email format');
+      throw new Error("Invalid email format");
     }
 
     const response = await authService.signIn({ email, password });
@@ -47,7 +50,7 @@ class AuthController {
    */
   async signUp(email: string, password: string): Promise<AuthUser> {
     if (!this.validateEmail(email)) {
-      throw new Error('Invalid email format');
+      throw new Error("Invalid email format");
     }
 
     const passwordValidation = this.validatePassword(password);
@@ -88,7 +91,7 @@ class AuthController {
     try {
       await authService.signOut();
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error("Sign out error:", error);
     }
   }
 }

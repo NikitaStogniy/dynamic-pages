@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifySession } from '@/lib/auth/session';
 import { checkRateLimit } from '@/lib/utils/rate-limit';
 import { db } from '@/lib/db';
 import { webhookEndpoints } from '@/lib/db/schema';
@@ -9,24 +8,19 @@ import { eq, and } from 'drizzle-orm';
  * Webhook trigger endpoint
  * Executes webhooks on server-side to keep tokens and credentials secure
  *
- * Rate limit: 100 requests per minute per user
+ * Rate limit: 100 requests per minute per IP
  * Timeout: 30 seconds
  */
 export async function POST(request: NextRequest) {
   try {
-    // 1. Verify session
-    const session = await verifySession();
+    // 1. Get client IP for rate limiting
+    const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] ||
+                     request.headers.get('x-real-ip') ||
+                     'unknown';
 
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // 2. Check rate limit (100 requests per minute)
+    // 2. Check rate limit (100 requests per minute per IP)
     const rateLimitResult = checkRateLimit(
-      `webhook:${session.userId}`,
+      `webhook:ip:${clientIp}`,
       { limit: 100, windowSeconds: 60 }
     );
 
@@ -55,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     let finalWebhookUrl: string;
 
-    // New approach: use webhookId to fetch URL from database (secure)
+    // Approach 1: use webhookId to fetch URL from database
     if (webhookId !== undefined) {
       if (typeof webhookId !== 'number') {
         return NextResponse.json(
@@ -64,14 +58,13 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Fetch webhook endpoint from database
+      // Fetch webhook endpoint from database (check only if active)
       const [endpoint] = await db
         .select()
         .from(webhookEndpoints)
         .where(
           and(
             eq(webhookEndpoints.id, webhookId),
-            eq(webhookEndpoints.userId, session.userId),
             eq(webhookEndpoints.isActive, true)
           )
         );
@@ -85,7 +78,7 @@ export async function POST(request: NextRequest) {
 
       finalWebhookUrl = endpoint.url;
     }
-    // Legacy approach: use webhookUrl directly (backward compatibility)
+    // Approach 2: use webhookUrl directly
     else if (webhookUrl && typeof webhookUrl === 'string') {
       finalWebhookUrl = webhookUrl;
     }
