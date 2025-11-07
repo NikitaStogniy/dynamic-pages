@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, pages, NewPage } from '@/lib/db';
 import { eq, inArray } from 'drizzle-orm';
 import { USER_LIMITS } from '@/lib/constants';
-import { generateSlugCandidates, isValidSlug } from '@/lib/utils/slug';
+import { generateSlugCandidates } from '@/lib/utils/slug';
 import { createPageSchema } from '@/lib/validation/schemas';
 import { verifySession } from '@/lib/auth/session';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Verify session from httpOnly cookie
     const session = await verifySession();

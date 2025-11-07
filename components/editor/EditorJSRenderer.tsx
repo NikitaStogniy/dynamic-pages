@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import Image from 'next/image';
 import { OutputData } from '@/lib/types/editor';
 import DOMPurify from 'isomorphic-dompurify';
 import { toast } from 'sonner';
@@ -167,9 +168,11 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
 
         return (
           <figure key={key} className="mb-4">
-            <img
+            <Image
               src={String(imageData.file.url)}
               alt={String(imageData.caption || 'Image')}
+              width={800}
+              height={600}
               className="w-full rounded-lg"
               onError={(e) => {
                 if (process.env.NODE_ENV === 'development') {

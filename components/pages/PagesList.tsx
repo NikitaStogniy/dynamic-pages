@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePages, useDeletePage } from '@/lib/hooks/queries/usePages';
 import ShowQR from './ShowQR';
-import { Compass, Trash2, LoaderCircle, Plus, SquarePen } from "lucide-react";
+import { Compass, Trash2, Plus, SquarePen } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

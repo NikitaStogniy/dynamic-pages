@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import Image from 'next/image';
 import { generateQRCode } from "@/lib/utils/qrcode";
-import { QrCode, Download, Clock, AlertTriangle } from "lucide-react";
+import { QrCode, Clock, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -172,9 +173,11 @@ export default function ShowQR({ pageSlug, pageTitle }: ShowQRProps) {
             ) : qrCodeData ? (
               <>
                 <div className="flex flex-col items-center space-y-4">
-                  <img
+                  <Image
                     src={qrCodeData}
                     alt="QR Code"
+                    width={300}
+                    height={300}
                     className="border-2 border-border rounded-lg p-4 bg-background shadow-sm"
                   />
 

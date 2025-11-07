@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import { notFound } from "next/navigation";
 import EditorJSRenderer from "@/components/editor/EditorJSRenderer";
 import { OutputData } from "@/lib/types/editor";
@@ -28,11 +28,7 @@ export default function PublicPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
-    fetchPage();
-  }, [resolvedParams.slug]);
-
-  const fetchPage = async () => {
+  const fetchPage = useCallback(async () => {
     try {
       const response = await fetch(`/api/pages/${resolvedParams.slug}`);
 
@@ -52,7 +48,11 @@ export default function PublicPage({ params }: PageProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [resolvedParams.slug]);
+
+  useEffect(() => {
+    fetchPage();
+  }, [fetchPage]);
 
   if (loading) {
     return (

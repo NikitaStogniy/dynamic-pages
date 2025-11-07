@@ -39,7 +39,7 @@ export default function Settings() {
     },
   });
 
-  const onSubmit = async (data: PasswordFormValues) => {
+  const onSubmit = async () => {
     // This is a placeholder - you would implement password change logic here
     toast.info('Password change functionality will be implemented here');
     form.reset();

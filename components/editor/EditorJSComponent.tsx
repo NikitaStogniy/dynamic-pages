@@ -46,7 +46,7 @@ export default function EditorJSComponent({
       readOnly,
       minHeight,
       autofocus: !isMobile && !readOnly, // Disable autofocus on mobile
-      onChange: async (api: API, event: CustomEvent) => {
+      onChange: async (api: API) => {
         if (!readOnly && onChange) {
           // Debounce save to allow uploads to complete
           if (saveTimeoutRef.current) {
@@ -113,7 +113,8 @@ export default function EditorJSComponent({
       };
       destroyEditor();
     };
-  }, []); // Remove initializeEditor from deps to prevent re-initialization
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Intentionally empty: initializeEditor is not a dependency to prevent re-initialization
 
   // Remove the data update effect entirely as it causes issues
   // The editor is initialized with the correct data and handles its own state

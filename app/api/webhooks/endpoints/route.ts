@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifySession } from '@/lib/auth/session';
 import { db } from '@/lib/db';
 import { webhookEndpoints } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 // GET /api/webhooks/endpoints - Get all webhooks for the current user
-export async function GET(request: NextRequest) {
+export async function GET() {
   const session = await verifySession();
 
   if (!session) {

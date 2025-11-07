@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
     let url: URL;
     try {
       url = new URL(finalWebhookUrl);
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { error: 'Invalid URL format' },
         { status: 400 }

@@ -1,4 +1,4 @@
-import { API, BlockTool, BlockToolData, ToolConfig } from '@editorjs/editorjs';
+import { API, BlockTool, BlockToolData } from '@editorjs/editorjs';
 
 interface ButtonData extends BlockToolData {
   text: string;

@@ -78,7 +78,7 @@ class AuthController {
         email: response.user.email,
         emailVerified: response.user.emailVerified || false,
       };
-    } catch (_error) {
+    } catch {
       // Session invalid or expired
       return null;
     }

@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm';
 
 let cronInitialized = false;
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const allJobs = await db.query.cronJobs.findMany();
     return NextResponse.json({ jobs: allJobs });

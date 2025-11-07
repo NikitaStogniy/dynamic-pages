@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET endpoint to list user's uploaded files
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Check authentication via httpOnly cookie
     const session = await verifySession();
