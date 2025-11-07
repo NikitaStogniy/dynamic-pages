@@ -123,13 +123,13 @@ export default function AccessPage() {
       <div className="sticky top-0 z-50 bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 px-4 shadow-lg">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">⏱️ Time Remaining:</span>
+            <span className="text-sm font-medium">⏱️ Осталось времени:</span>
             <span className="text-xl font-bold font-mono">
               {formatTime(timeRemaining)}
             </span>
           </div>
           <div className="text-xs opacity-90">
-            This page will expire automatically
+            Эта страница исчезнет автоматически
           </div>
         </div>
       </div>

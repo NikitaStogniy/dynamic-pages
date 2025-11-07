@@ -1,9 +1,9 @@
 'use client'
 
 import { useAuth } from '@/lib/auth/context-new';
-import { LogoIcon } from "@/components/icons";
-import {UserComponent} from '@/components/ui/UserComponent'
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { Sidebar } from '@/components/layout/sidebar';
+import { Skeleton } from '@/components/ui/skeleton';
+
 export default function DashboardLayout({
   children,
 }: {
@@ -13,8 +13,16 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
+      <div className="flex h-screen">
+        <div className="w-64 border-r p-4 space-y-4">
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-lg text-muted-foreground">Loading...</div>
+        </div>
       </div>
     );
   }
@@ -22,24 +30,18 @@ export default function DashboardLayout({
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Redirecting to sign in...</div>
+        <div className="text-lg text-muted-foreground">Redirecting to sign in...</div>
       </div>
     );
   }
 
   return (
-    <div className=" max-w-7xl mx-auto min-h-screen flex flex-col">
-      <div className="flex items-center justify-between w-full gap-4">
-            <div className="dark:invert">
-            <LogoIcon />
-            </div>
-            <div className="flex items-center gap-4">
-              <ThemeToggle />
-              <UserComponent />
-            </div>
+    <div className="flex h-screen overflow-hidden">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto">
+        <div className="container mx-auto p-6">
+          {children}
         </div>
-      <main className="flex-1">
-        {children}
       </main>
     </div>
   );

@@ -36,7 +36,6 @@ npm run db:studio    # Open Drizzle Studio for database management
 - **pages**: User-created pages with Editor.js content (JSONB), random 8-char slugs, userId ownership
 - **uploadcareFiles**: File upload metadata and CDN URLs
 - **cronJobs**: Scheduled task management
-- **telegramUsers**: Telegram integration data
 
 ### Authentication Flow
 - Session tokens stored in httpOnly cookies (`session_token`)

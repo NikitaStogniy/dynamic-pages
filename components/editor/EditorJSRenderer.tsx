@@ -1,55 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { OutputData } from '@/lib/types/editor';
 import DOMPurify from 'isomorphic-dompurify';
+import { toast } from 'sonner';
 
 interface EditorJSRendererProps {
   data: OutputData | null;
 }
 
-// Allowed webhook domains for security (SSRF prevention)
-const ALLOWED_WEBHOOK_DOMAINS = [
-  'hooks.slack.com',
-  'discord.com',
-  'webhook.site',
-  'requestcatcher.com',
-  // Add your own webhook domains here
-];
-
-/**
- * Validates webhook URL to prevent SSRF attacks
- * Only allows URLs from whitelisted domains
- */
-function isValidWebhookUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-
-    // Only allow HTTPS for security
-    if (parsed.protocol !== 'https:') {
-      console.error('Webhook URL must use HTTPS');
-      return false;
-    }
-
-    // Check if domain is in whitelist
-    const isAllowed = ALLOWED_WEBHOOK_DOMAINS.some(domain =>
-      parsed.hostname === domain || parsed.hostname.endsWith(`.${domain}`)
-    );
-
-    if (!isAllowed) {
-      console.error(`Webhook domain not allowed: ${parsed.hostname}`);
-      console.error(`Allowed domains: ${ALLOWED_WEBHOOK_DOMAINS.join(', ')}`);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Invalid webhook URL:', error);
-    return false;
-  }
-}
-
 export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
+  // Rate limiting: track last click time for each button (by index)
+  const lastClickTime = useRef<Map<number, number>>(new Map());
+  const [loadingButtons, setLoadingButtons] = useState<Set<number>>(new Set());
+
   if (!data || !data.blocks || data.blocks.length === 0) {
     return (
       <div className="text-gray-500 dark:text-gray-400 italic">
@@ -327,59 +291,161 @@ export default function EditorJSRenderer({ data }: EditorJSRendererProps) {
 
         const buttonData = block.data as {
           url?: string;
+          webhookId?: number;
           text?: string;
           style?: string;
           alignment?: string;
           openInNewTab?: boolean;
+          successMessage?: string;
+          errorMessage?: string;
+        };
+
+        console.log('Rendering button block:', {
+          index,
+          buttonData,
+          hasWebhookId: !!buttonData.webhookId,
+          hasUrl: !!buttonData.url
+        });
+
+        // Validate button has an action
+        const hasValidUrl = buttonData.url && buttonData.url.trim() !== '';
+        const hasValidWebhook = typeof buttonData.webhookId === 'number' && buttonData.webhookId > 0;
+
+        if (!hasValidUrl && !hasValidWebhook) {
+          // Button is incomplete - show warning message
+          return (
+            <div key={key} className="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 dark:border-yellow-600">
+              <div className="font-semibold text-yellow-800 dark:text-yellow-300">
+                ⚠️ Incomplete Button
+              </div>
+              <div className="text-yellow-700 dark:text-yellow-400 mt-1">
+                Button &quot;{String(buttonData.text || 'Click me')}&quot; has no action configured (no URL or webhook selected). Please edit this page to configure the button action.
+              </div>
+            </div>
+          );
+        }
+
+        const isLoading = loadingButtons.has(index);
+        const isWebhook = !!buttonData.webhookId;
+
+        console.log('Button rendering mode:', isWebhook ? 'WEBHOOK' : 'URL');
+
+        const handleWebhookClick = (e: React.MouseEvent) => {
+          e.preventDefault();
+          console.log('Webhook button clicked!', { webhookId: buttonData.webhookId, buttonText: buttonData.text });
+
+          // Rate limiting: check last click time
+          const now = Date.now();
+          const lastClick = lastClickTime.current.get(index);
+          const RATE_LIMIT_MS = 30000; // 30 seconds
+
+          if (lastClick && now - lastClick < RATE_LIMIT_MS) {
+            const remainingSeconds = Math.ceil((RATE_LIMIT_MS - (now - lastClick)) / 1000);
+            console.log('Rate limited:', remainingSeconds, 'seconds remaining');
+            toast.warning(`Please wait ${remainingSeconds} seconds before clicking again`);
+            return;
+          }
+
+          // Check if already loading
+          if (isLoading) {
+            console.log('Already loading, ignoring click');
+            return;
+          }
+
+          console.log('Starting webhook trigger...');
+          // Set loading state
+          setLoadingButtons(prev => new Set(prev).add(index));
+          const loadingToast = toast.loading('Triggering webhook...');
+
+          // Update last click time
+          lastClickTime.current.set(index, now);
+
+          // Trigger webhook via server-side API endpoint
+          console.log('Sending webhook request to /api/webhooks/trigger', {
+            webhookId: buttonData.webhookId,
+            payload: {
+              buttonText: String(buttonData.text || ''),
+              timestamp: new Date().toISOString(),
+              pageUrl: window.location.href,
+            }
+          });
+
+          fetch('/api/webhooks/trigger', {
+            method: 'POST',
+            credentials: 'include', // Required for session authentication
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              webhookId: buttonData.webhookId,
+              payload: {
+                buttonText: String(buttonData.text || ''),
+                timestamp: new Date().toISOString(),
+                pageUrl: window.location.href,
+              }
+            })
+          }).then(async response => {
+            console.log('Webhook response received:', response.status, response.statusText);
+            toast.dismiss(loadingToast);
+            setLoadingButtons(prev => {
+              const next = new Set(prev);
+              next.delete(index);
+              return next;
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              console.log('Webhook triggered successfully:', data);
+              const successMsg = buttonData.successMessage || 'Webhook triggered successfully!';
+              toast.success(successMsg);
+            } else if (response.status === 429) {
+              const data = await response.json();
+              toast.error(`Rate limit exceeded. Please try again in ${data.retryAfter} seconds.`);
+            } else if (response.status === 401) {
+              toast.error('Unauthorized. Please sign in to trigger webhooks.');
+            } else {
+              const data = await response.json();
+              console.error('Failed to trigger webhook:', data);
+              const errorMsg = buttonData.errorMessage || 'Failed to trigger webhook';
+              toast.error(`${errorMsg}: ${data.error || 'Unknown error'}`);
+            }
+          }).catch(error => {
+            toast.dismiss(loadingToast);
+            setLoadingButtons(prev => {
+              const next = new Set(prev);
+              next.delete(index);
+              return next;
+            });
+            console.error('Error triggering webhook:', error);
+            const errorMsg = buttonData.errorMessage || 'Failed to trigger webhook';
+            toast.error(`${errorMsg}. Check console for details.`);
+          });
         };
 
         return (
           <div key={key} className={`mb-4 ${alignmentClasses[String(buttonData.alignment || 'center')]}`}>
-            <a
-              href={String(buttonData.url || '#')}
-              target={buttonData.openInNewTab !== false ? '_blank' : '_self'}
-              rel={buttonData.openInNewTab !== false ? 'noopener noreferrer' : undefined}
-              className={`inline-block px-6 py-3 rounded-md font-medium transition-all duration-300 ${
-                buttonStyles[String(buttonData.style || 'primary')]
-              }`}
-              onClick={(e) => {
-                const url = String(buttonData.url || '');
-                if (url && url.startsWith('webhook://')) {
-                  e.preventDefault();
-                  // Extract webhook URL (remove webhook:// prefix)
-                  const webhookUrl = url.substring(10);
-
-                  // Validate webhook URL to prevent SSRF attacks
-                  if (!isValidWebhookUrl(webhookUrl)) {
-                    alert('Invalid webhook URL. Only whitelisted domains are allowed for security.');
-                    return;
-                  }
-
-                  // Trigger webhook
-                  fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                      buttonText: String(buttonData.text || ''),
-                      timestamp: new Date().toISOString(),
-                      pageUrl: window.location.href,
-                    })
-                  }).then(response => {
-                    if (response.ok) {
-                      console.log('Webhook triggered successfully');
-                    } else {
-                      console.error('Failed to trigger webhook');
-                    }
-                  }).catch(error => {
-                    console.error('Error triggering webhook:', error);
-                  });
-                }
-              }}
-            >
-              {String(buttonData.text || 'Click me')}
-            </a>
+            {isWebhook ? (
+              <button
+                onClick={handleWebhookClick}
+                disabled={isLoading}
+                className={`inline-block px-6 py-3 rounded-md font-medium transition-all duration-300 ${
+                  buttonStyles[String(buttonData.style || 'primary')]
+                } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+              >
+                {isLoading ? 'Loading...' : String(buttonData.text || 'Click me')}
+              </button>
+            ) : (
+              <a
+                href={String(buttonData.url || '#')}
+                target={buttonData.openInNewTab ? '_blank' : '_self'}
+                rel={buttonData.openInNewTab ? 'noopener noreferrer' : undefined}
+                className={`inline-block px-6 py-3 rounded-md font-medium transition-all duration-300 ${
+                  buttonStyles[String(buttonData.style || 'primary')]
+                } cursor-pointer`}
+              >
+                {String(buttonData.text || 'Click me')}
+              </a>
+            )}
           </div>
         );
 

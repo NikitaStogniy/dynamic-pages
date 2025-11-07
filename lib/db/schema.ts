@@ -53,16 +53,6 @@ export const cronJobs = pgTable('cron_jobs', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const telegramUsers = pgTable('telegram_users', {
-  id: serial('id').primaryKey(),
-  telegramId: text('telegram_id').unique().notNull(),
-  firstName: text('first_name'),
-  lastName: text('last_name'),
-  username: text('username'),
-  isBot: boolean('is_bot').default(false),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
 export const uploadcareFiles = pgTable('uploadcare_files', {
   id: serial('id').primaryKey(),
   fileId: text('file_id').unique().notNull(),
@@ -76,6 +66,17 @@ export const uploadcareFiles = pgTable('uploadcare_files', {
   fileIdIdx: uniqueIndex('file_id_idx').on(table.fileId),
 }));
 
+export const webhookEndpoints = pgTable('webhook_endpoints', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  url: text('url').notNull(),
+  description: text('description'),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
@@ -86,7 +87,7 @@ export type PageAccessToken = typeof pageAccessTokens.$inferSelect;
 export type NewPageAccessToken = typeof pageAccessTokens.$inferInsert;
 export type CronJob = typeof cronJobs.$inferSelect;
 export type NewCronJob = typeof cronJobs.$inferInsert;
-export type TelegramUser = typeof telegramUsers.$inferSelect;
-export type NewTelegramUser = typeof telegramUsers.$inferInsert;
 export type UploadcareFile = typeof uploadcareFiles.$inferSelect;
 export type NewUploadcareFile = typeof uploadcareFiles.$inferInsert;
+export type WebhookEndpoint = typeof webhookEndpoints.$inferSelect;
+export type NewWebhookEndpoint = typeof webhookEndpoints.$inferInsert;

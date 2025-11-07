@@ -3,10 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { AlertTriangle } from 'lucide-react';
 import EditorJS from '@/components/editor/EditorJS';
 import { OutputData, ensureValidEditorData } from '@/lib/types/editor';
 import { useCreatePage, usePages } from '@/lib/hooks/queries/usePages';
 import { pagesController } from '@/lib/controllers/pages.controller';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function NewPage() {
   const router = useRouter();
@@ -101,80 +107,88 @@ export default function NewPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <Link
-          href="/dashboard/pages"
-          className="text-gray-600 dark:text-gray-300 dark:hover:text-gray-100 hover:text-gray-900 flex items-center"
-        >
-          ← Back to Pages
-        </Link>
+    <div className="space-y-6">
+      <div>
+        <Button variant="ghost" asChild className="mb-4">
+          <Link href="/dashboard/pages">
+            ← Back to Pages
+          </Link>
+        </Button>
+        <h1 className="text-3xl font-bold">Create New Page</h1>
+        <p className="text-muted-foreground mt-2">
+          Fill in the details below to create a new page
+        </p>
       </div>
 
-      <h1 className="text-3xl font-bold mb-8">Create New Page</h1>
-
       {isLimitReached && (
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-lg mb-6">
-          <p className="font-medium">Page limit reached</p>
-          <p className="text-sm mt-1">You have reached the maximum limit of 5 pages. Please delete an existing page to create a new one.</p>
-        </div>
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Page limit reached</AlertTitle>
+          <AlertDescription>
+            You have reached the maximum limit of 5 pages. Please delete an existing page to create a new one.
+          </AlertDescription>
+        </Alert>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {error && (
-          <div className="bg-red-50 dark:bg-red-950 text-red-600 p-4 rounded-lg">
-            {error}
-          </div>
-        )}
+      <Card>
+        <CardHeader>
+          <CardTitle>Page Details</CardTitle>
+          <CardDescription>
+            Enter a title and content for your new page
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium dark:text-gray-300  text-gray-700 mb-2">
-            Page Title
-          </label>
-          <input
-            type="text"
-            id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 border dark:border-gray-500 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter page title"
-            required
-          />
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="title">Page Title</Label>
+              <Input
+                type="text"
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter page title"
+                required
+              />
+            </div>
 
-        <div>
-          <label className="block text-sm font-medium dark:text-gray-300 text-gray-700 mb-2">
-            Content
-          </label>
-          <div className="border border-gray-300 rounded-lg p-4">
-            <EditorJS
-              data={content}
-              onChange={setContent}
-              placeholder="Start writing your page content... Press Tab or / for commands"
-              minHeight={300}
-            />
-          </div>
-        </div>
+            <div className="space-y-2">
+              <Label>Content</Label>
+              <div className="border rounded-lg p-4">
+                <EditorJS
+                  data={content}
+                  onChange={setContent}
+                  placeholder="Start writing your page content... Press Tab or / for commands"
+                  minHeight={300}
+                />
+              </div>
+            </div>
 
-        <div className="flex gap-4">
-          <button
-            type="submit"
-            disabled={createPage.isPending || isLimitReached || isGeneratingSlug || slugStatus === 'error'}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {createPage.isPending ? 'Creating...' : 
-             isGeneratingSlug ? 'Generating ID...' :
-             slugStatus === 'error' ? 'Error' :
-             isLimitReached ? 'Limit Reached' : 'Create Page'}
-          </button>
-          <Link
-            href="/dashboard/pages"
-            className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-          >
-            Cancel
-          </Link>
-        </div>
-      </form>
+            <div className="flex gap-4">
+              <Button
+                type="submit"
+                disabled={createPage.isPending || isLimitReached || isGeneratingSlug || slugStatus === 'error'}
+              >
+                {createPage.isPending ? 'Creating...' :
+                 isGeneratingSlug ? 'Generating ID...' :
+                 slugStatus === 'error' ? 'Error' :
+                 isLimitReached ? 'Limit Reached' : 'Create Page'}
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/dashboard/pages">
+                  Cancel
+                </Link>
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
