@@ -35,13 +35,17 @@ export default function EditorJSComponent({
 
     isInitializing.current = true;
 
+    // Detect mobile device
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
     const config: EditorConfig = {
       ...EDITOR_CONFIG,
       holder: holderId.current,
-      placeholder: placeholder || EDITOR_CONFIG.placeholder,
+      placeholder: placeholder || (isMobile ? 'Tap to start writing...' : EDITOR_CONFIG.placeholder),
       data: ensureValidEditorData(data),
       readOnly,
       minHeight,
+      autofocus: !isMobile && !readOnly, // Disable autofocus on mobile
       onChange: async (api: API, event: CustomEvent) => {
         if (!readOnly && onChange) {
           // Debounce save to allow uploads to complete
@@ -269,6 +273,92 @@ export default function EditorJSComponent({
 
         :global(.dark .cdx-quote__caption) {
           color: rgb(156 163 175);
+        }
+
+        /* Mobile touch-friendly styles */
+        @media (max-width: 768px) {
+          /* Increase touch target sizes on mobile */
+          :global(.ce-toolbar__plus),
+          :global(.ce-toolbar__settings-btn) {
+            min-width: 44px !important;
+            min-height: 44px !important;
+            width: 44px !important;
+            height: 44px !important;
+            padding: 12px !important;
+          }
+
+          /* Inline toolbar buttons */
+          :global(.ce-inline-tool),
+          :global(.ce-conversion-tool__icon) {
+            min-width: 44px !important;
+            min-height: 44px !important;
+            padding: 10px !important;
+          }
+
+          /* Prevent toolbar from overflowing viewport */
+          :global(.ce-inline-toolbar),
+          :global(.ce-conversion-toolbar),
+          :global(.ce-settings) {
+            max-width: calc(100vw - 32px) !important;
+            left: 16px !important;
+            right: 16px !important;
+          }
+
+          /* Better spacing for block content */
+          :global(.ce-block__content) {
+            padding: 12px 8px !important;
+          }
+
+          /* Larger tap area for text selection */
+          :global(.ce-paragraph),
+          :global(.ce-header) {
+            padding: 8px 0 !important;
+            min-height: 44px !important;
+          }
+
+          /* Prevent horizontal scroll */
+          :global(.codex-editor) {
+            overflow-x: hidden !important;
+          }
+
+          /* Popover items touch-friendly */
+          :global(.ce-popover-item) {
+            min-height: 44px !important;
+            padding: 12px 16px !important;
+          }
+        }
+
+        /* Touch device specific styles (no mouse hover) */
+        @media (hover: none) and (pointer: coarse) {
+          /* Remove hover states on touch devices */
+          :global(.ce-toolbar__plus:hover),
+          :global(.ce-toolbar__settings-btn:hover) {
+            background-color: transparent !important;
+          }
+
+          /* Add active/pressed states instead */
+          :global(.ce-toolbar__plus:active),
+          :global(.ce-toolbar__settings-btn:active) {
+            background-color: rgb(229 231 235) !important;
+            transform: scale(0.95);
+          }
+
+          :global(.dark .ce-toolbar__plus:active),
+          :global(.dark .ce-toolbar__settings-btn:active) {
+            background-color: rgb(55 65 81) !important;
+          }
+
+          :global(.ce-inline-tool:active),
+          :global(.ce-conversion-tool:active),
+          :global(.ce-popover-item:active) {
+            background-color: rgb(229 231 235) !important;
+          }
+
+          :global(.dark .ce-inline-tool:active),
+          :global(.dark .ce-conversion-tool:active),
+          :global(.dark .ce-popover-item:active) {
+            background-color: rgb(55 65 81) !important;
+          }
         }
       `}</style>
     </div>

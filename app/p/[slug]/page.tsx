@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect, use } from 'react';
-import { notFound } from 'next/navigation';
-import EditorJSRenderer from '@/components/editor/EditorJSRenderer';
-import { OutputData } from '@/lib/types/editor';
+import { useState, useEffect, use } from "react";
+import { notFound } from "next/navigation";
+import EditorJSRenderer from "@/components/editor/EditorJSRenderer";
+import { OutputData } from "@/lib/types/editor";
 
 interface PageProps {
   params: Promise<{
@@ -35,19 +35,19 @@ export default function PublicPage({ params }: PageProps) {
   const fetchPage = async () => {
     try {
       const response = await fetch(`/api/pages/${resolvedParams.slug}`);
-      
+
       if (!response.ok) {
         setError(true);
         return;
       }
 
       const data = await response.json();
-      console.log('Fetched page data:', data);
-      console.log('Page content:', data.content);
-      console.log('Content blocks:', data.content?.blocks);
+      console.log("Fetched page data:", data);
+      console.log("Page content:", data.content);
+      console.log("Content blocks:", data.content?.blocks);
       setPage(data);
     } catch (err) {
-      console.error('Error fetching page:', err);
+      console.error("Error fetching page:", err);
       setError(true);
     } finally {
       setLoading(false);
@@ -57,7 +57,7 @@ export default function PublicPage({ params }: PageProps) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-gray-500">Загрузка...</div>
       </div>
     );
   }
@@ -67,19 +67,19 @@ export default function PublicPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-4xl mx-auto px-4 py-12">
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-12">
         <article>
-          <header className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <header className="mb-6 md:mb-8">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4 break-words">
               {page.title}
             </h1>
-            <div className="text-sm text-gray-500">
+            <div className="text-xs sm:text-sm text-muted-foreground">
               Last updated: {new Date(page.updatedAt).toLocaleDateString()}
             </div>
           </header>
 
-          <div className="prose prose-lg max-w-none">
+          <div className="prose prose-sm sm:prose-base md:prose-lg max-w-none dark:prose-invert">
             <EditorJSRenderer data={page.content} />
           </div>
         </article>

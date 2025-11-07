@@ -48,8 +48,8 @@ export default function Settings() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground mt-2">
+        <h1 className="text-2xl md:text-3xl font-bold">Settings</h1>
+        <p className="text-muted-foreground mt-2 text-sm md:text-base">
           Manage your account settings and preferences
         </p>
       </div>
@@ -61,17 +61,17 @@ export default function Settings() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-3">
-            <div className="flex justify-between items-center py-2">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 py-2">
               <span className="text-sm font-medium text-muted-foreground">Email</span>
-              <span className="text-sm">{user?.email}</span>
+              <span className="text-sm break-all">{user?.email}</span>
             </div>
             <Separator />
-            <div className="flex justify-between items-center py-2">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 py-2">
               <span className="text-sm font-medium text-muted-foreground">User ID</span>
-              <span className="text-sm font-mono">{user?.id}</span>
+              <span className="text-sm font-mono break-all">{user?.id}</span>
             </div>
             <Separator />
-            <div className="flex justify-between items-center py-2">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 py-2">
               <span className="text-sm font-medium text-muted-foreground">Email Verified</span>
               <Badge variant={user?.emailVerified ? "default" : "secondary"}>
                 {user?.emailVerified ? 'Verified' : 'Not Verified'}

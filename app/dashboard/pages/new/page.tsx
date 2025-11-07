@@ -109,13 +109,13 @@ export default function NewPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Button variant="ghost" asChild className="mb-4">
-          <Link href="/dashboard/pages">
-            ← Back to Pages
+        <Button variant="ghost" asChild className="mb-4 min-h-[44px]">
+          <Link href="/dashboard">
+            ← Back to Dashboard
           </Link>
         </Button>
-        <h1 className="text-3xl font-bold">Create New Page</h1>
-        <p className="text-muted-foreground mt-2">
+        <h1 className="text-2xl md:text-3xl font-bold">Create New Page</h1>
+        <p className="text-muted-foreground mt-2 text-sm md:text-base">
           Fill in the details below to create a new page
         </p>
       </div>
@@ -170,18 +170,19 @@ export default function NewPage() {
               </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <Button
                 type="submit"
                 disabled={createPage.isPending || isLimitReached || isGeneratingSlug || slugStatus === 'error'}
+                className="w-full sm:w-auto min-h-[48px]"
               >
                 {createPage.isPending ? 'Creating...' :
                  isGeneratingSlug ? 'Generating ID...' :
                  slugStatus === 'error' ? 'Error' :
                  isLimitReached ? 'Limit Reached' : 'Create Page'}
               </Button>
-              <Button variant="outline" asChild>
-                <Link href="/dashboard/pages">
+              <Button variant="outline" asChild className="w-full sm:w-auto min-h-[48px]">
+                <Link href="/dashboard">
                   Cancel
                 </Link>
               </Button>

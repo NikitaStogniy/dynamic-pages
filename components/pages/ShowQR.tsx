@@ -1,13 +1,25 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { generateQRCode } from '@/lib/utils/qrcode';
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { generateQRCode } from "@/lib/utils/qrcode";
 import { QrCode, Download, Clock, AlertTriangle } from "lucide-react";
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ShowQRProps {
   pageSlug: string;
@@ -16,9 +28,9 @@ interface ShowQRProps {
 
 export default function ShowQR({ pageSlug, pageTitle }: ShowQRProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [qrCodeData, setQrCodeData] = useState<string>('');
+  const [qrCodeData, setQrCodeData] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [accessUrl, setAccessUrl] = useState<string>('');
+  const [accessUrl, setAccessUrl] = useState<string>("");
   const [hasExpiry, setHasExpiry] = useState(false);
   const [expiresAt, setExpiresAt] = useState<Date | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
@@ -31,7 +43,9 @@ export default function ShowQR({ pageSlug, pageTitle }: ShowQRProps) {
     const seconds = totalSeconds % 60;
 
     if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+      return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+        .toString()
+        .padStart(2, "0")}`;
     }
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   }, [timeRemaining]);
@@ -41,8 +55,8 @@ export default function ShowQR({ pageSlug, pageTitle }: ShowQRProps) {
     try {
       // Try to generate an access token
       const tokenResponse = await fetch(`/api/pages/${pageSlug}/access-token`, {
-        method: 'POST',
-        credentials: 'include',
+        method: "POST",
+        credentials: "include",
       });
 
       let pageUrl = `${window.location.origin}/p/${pageSlug}`;
@@ -66,19 +80,11 @@ export default function ShowQR({ pageSlug, pageTitle }: ShowQRProps) {
       const qrCode = await generateQRCode(pageUrl);
       setQrCodeData(qrCode);
     } catch (error) {
-      console.error('Error generating QR code:', error);
+      console.error("Error generating QR code:", error);
     } finally {
       setLoading(false);
     }
   }, [pageSlug]);
-
-  // Memoize download handler
-  const handleDownload = useCallback(() => {
-    const link = document.createElement('a');
-    link.download = `qr-${pageSlug}.png`;
-    link.href = qrCodeData;
-    link.click();
-  }, [pageSlug, qrCodeData]);
 
   // Generate QR code every time the Sheet opens
   useEffect(() => {
@@ -86,7 +92,7 @@ export default function ShowQR({ pageSlug, pageTitle }: ShowQRProps) {
       generateQR();
     } else {
       // Reset state when closing
-      setQrCodeData('');
+      setQrCodeData("");
       setExpiresAt(null);
       setTimeRemaining(0);
     }
@@ -192,14 +198,9 @@ export default function ShowQR({ pageSlug, pageTitle }: ShowQRProps) {
                     )}
 
                     <p className="text-xs text-muted-foreground font-mono bg-muted px-3 py-2 rounded break-all">
-                      {accessUrl.replace(window.location.origin, '')}
+                      {accessUrl.replace(window.location.origin, "")}
                     </p>
                   </div>
-
-                  <Button onClick={handleDownload} className="w-full max-w-sm">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download QR Code
-                  </Button>
                 </div>
               </>
             ) : (

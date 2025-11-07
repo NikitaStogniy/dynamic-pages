@@ -81,17 +81,17 @@ export default function EditPage({ params }: PageProps) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="mb-6">
+    <div className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-8">
+      <div className="mb-4 md:mb-6">
         <Link
-          href="/dashboard/pages"
-          className="text-gray-600 hover:text-gray-900 flex items-center"
+          href="/dashboard"
+          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 min-h-[44px]"
         >
-          ← Back to Pages
+          ← Back to Dashboard
         </Link>
       </div>
 
-      <h1 className="text-3xl font-bold mb-8">Edit Page</h1>
+      <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Edit Page</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
@@ -109,7 +109,7 @@ export default function EditPage({ params }: PageProps) {
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]"
             placeholder="Enter page title"
             required
           />
@@ -129,37 +129,37 @@ export default function EditPage({ params }: PageProps) {
               max="1440"
               value={qrExpiryMinutes || ''}
               onChange={(e) => setQrExpiryMinutes(e.target.value ? parseInt(e.target.value) : null)}
-              className="w-32 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-32 px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 min-h-[44px]"
               placeholder="30"
             />
             <span className="text-sm text-gray-600 dark:text-gray-400">минут</span>
           </div>
-          <div className="mt-2 flex gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setQrExpiryMinutes(15)}
-              className="px-2 py-1 text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
+              className="px-4 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 min-h-[44px]"
             >
               15 мин
             </button>
             <button
               type="button"
               onClick={() => setQrExpiryMinutes(30)}
-              className="px-2 py-1 text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
+              className="px-4 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 min-h-[44px]"
             >
               30 мин
             </button>
             <button
               type="button"
               onClick={() => setQrExpiryMinutes(60)}
-              className="px-2 py-1 text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
+              className="px-4 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 min-h-[44px]"
             >
               1 час
             </button>
             <button
               type="button"
               onClick={() => setQrExpiryMinutes(null)}
-              className="px-2 py-1 text-xs bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600"
+              className="px-4 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 min-h-[44px]"
             >
               Без лимита
             </button>
@@ -192,17 +192,17 @@ export default function EditPage({ params }: PageProps) {
           </div>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <button
             type="submit"
             disabled={updatePage.isPending}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] font-medium"
           >
             {updatePage.isPending ? 'Saving...' : 'Save Changes'}
           </button>
           <Link
-            href="/dashboard/pages"
-            className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+            href="/dashboard"
+            className="w-full sm:w-auto px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-center min-h-[48px] flex items-center justify-center font-medium"
           >
             Cancel
           </Link>

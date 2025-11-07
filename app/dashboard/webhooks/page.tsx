@@ -193,16 +193,16 @@ export default function WebhooksPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Webhook Endpoints</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
+          <h1 className="text-2xl md:text-3xl font-bold">Webhook Endpoints</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2 text-sm md:text-base">
             Manage your webhook endpoints for button actions
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
-            <Button onClick={() => setIsDialogOpen(true)}>
+            <Button onClick={() => setIsDialogOpen(true)} className="w-full sm:w-auto">
               Add Webhook
             </Button>
           </DialogTrigger>
@@ -249,15 +249,16 @@ export default function WebhooksPage() {
                   placeholder="Optional description"
                 />
               </div>
-              <div className="flex gap-2 justify-end">
+              <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => handleDialogClose(false)}
+                  className="w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" className="w-full sm:w-auto">
                   {editingWebhook ? 'Update' : 'Create'}
                 </Button>
               </div>
@@ -308,11 +309,12 @@ export default function WebhooksPage() {
                       {webhook.url}
                     </p>
                   </div>
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex flex-col sm:flex-row gap-2 pt-2">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleEdit(webhook)}
+                      className="w-full sm:w-auto"
                     >
                       Edit
                     </Button>
@@ -320,6 +322,7 @@ export default function WebhooksPage() {
                       size="sm"
                       variant="outline"
                       onClick={() => handleToggleActive(webhook)}
+                      className="w-full sm:w-auto"
                     >
                       {webhook.isActive ? 'Deactivate' : 'Activate'}
                     </Button>
@@ -327,7 +330,7 @@ export default function WebhooksPage() {
                       size="sm"
                       variant="outline"
                       onClick={() => handleDelete(webhook.id)}
-                      className="text-red-600 hover:text-red-700"
+                      className="w-full sm:w-auto text-red-600 hover:text-red-700"
                     >
                       Delete
                     </Button>

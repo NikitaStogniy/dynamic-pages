@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { usePages, useDeletePage } from '@/lib/hooks/queries/usePages';
 import ShowQR from './ShowQR';
 import { Compass, Trash2, LoaderCircle, Plus, SquarePen } from "lucide-react";
@@ -21,6 +22,19 @@ interface PagesListProps {
 export function PagesList({ selectedSlug, onSelectPage }: PagesListProps) {
     const { data: pages = [], isLoading } = usePages();
     const deletePage = useDeletePage();
+    const router = useRouter();
+
+    const handleEdit = useCallback((e: React.MouseEvent, slug: string) => {
+        e.stopPropagation();
+
+        // On mobile (<768px), navigate to full-screen edit page
+        // On desktop, use the sidebar editor
+        if (window.innerWidth < 768) {
+            router.push(`/dashboard/pages/${slug}/edit`);
+        } else {
+            onSelectPage?.(slug);
+        }
+    }, [router, onSelectPage]);
 
     const handleDelete = useCallback(async (slug: string, title: string) => {
         if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
@@ -61,7 +75,7 @@ export function PagesList({ selectedSlug, onSelectPage }: PagesListProps) {
                 <Card>
                     <CardContent className="flex flex-col items-center justify-center py-12">
                         <p className="text-muted-foreground mb-4">No pages yet</p>
-                        <Button asChild>
+                        <Button asChild className="min-h-[44px]">
                             <Link href="/dashboard/pages/new">
                                 <Plus className="mr-2 h-4 w-4" />
                                 Create your first page
@@ -95,6 +109,7 @@ export function PagesList({ selectedSlug, onSelectPage }: PagesListProps) {
                                                             size="icon"
                                                             asChild
                                                             onClick={(e) => e.stopPropagation()}
+                                                            className="min-h-[44px] min-w-[44px]"
                                                         >
                                                             <Link href={`/p/${page.slug}`} target="_blank">
                                                                 <Compass className="h-4 w-4" />
@@ -109,10 +124,8 @@ export function PagesList({ selectedSlug, onSelectPage }: PagesListProps) {
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                onSelectPage?.(page.slug);
-                                                            }}
+                                                            onClick={(e) => handleEdit(e, page.slug)}
+                                                            className="min-h-[44px] min-w-[44px]"
                                                         >
                                                             <SquarePen className="h-4 w-4" />
                                                         </Button>
@@ -131,7 +144,7 @@ export function PagesList({ selectedSlug, onSelectPage }: PagesListProps) {
                                                                 e.stopPropagation();
                                                                 handleDelete(page.slug, page.title);
                                                             }}
-                                                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                            className="min-h-[44px] min-w-[44px] text-destructive hover:text-destructive hover:bg-destructive/10"
                                                         >
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
@@ -148,7 +161,7 @@ export function PagesList({ selectedSlug, onSelectPage }: PagesListProps) {
 
                     <div className="flex justify-center">
                         {pagesCount < maxPages ? (
-                            <Button asChild>
+                            <Button asChild className="min-h-[44px]">
                                 <Link href="/dashboard/pages/new">
                                     <Plus className="mr-2 h-4 w-4" />
                                     Create new page
@@ -159,7 +172,7 @@ export function PagesList({ selectedSlug, onSelectPage }: PagesListProps) {
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <div>
-                                            <Button disabled>
+                                            <Button disabled className="min-h-[44px]">
                                                 <Plus className="mr-2 h-4 w-4" />
                                                 Create new page
                                             </Button>

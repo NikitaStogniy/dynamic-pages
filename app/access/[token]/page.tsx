@@ -90,20 +90,22 @@ export default function AccessPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
+        <div className="text-lg">Загрузка...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="max-w-md w-full p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl text-center">
-          <div className="text-6xl mb-4">⏰</div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="max-w-md w-full p-6 md:p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl text-center">
+          <div className="text-5xl md:text-6xl mb-4">⏰</div>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">
             Доступ закончился
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">{error}</p>
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
+            {error}
+          </p>
         </div>
       </div>
     );
@@ -120,27 +122,31 @@ export default function AccessPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Timer Banner */}
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 px-4 shadow-lg">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+      <div className="sticky top-0 z-50 bg-gradient-to-r from-orange-500 to-red-500 text-white py-2 sm:py-3 px-4 shadow-lg">
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center sm:justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">⏱️ Осталось времени:</span>
-            <span className="text-xl font-bold font-mono">
+            <span className="text-xs sm:text-sm font-medium">
+              ⏱️ Осталось времени:
+            </span>
+            <span className="text-lg sm:text-xl font-bold font-mono">
               {formatTime(timeRemaining)}
             </span>
           </div>
-          <div className="text-xs opacity-90">
+          <div className="text-xs opacity-90 text-center sm:text-left">
             Эта страница исчезнет автоматически
           </div>
         </div>
       </div>
 
       {/* Page Content */}
-      <div className="max-w-4xl mx-auto py-8 px-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-          <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-white">
+      <div className="max-w-4xl mx-auto py-6 md:py-8 px-4 sm:px-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 md:p-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 md:mb-8 text-gray-900 dark:text-white break-words">
             {pageData.title}
           </h1>
-          <EditorJSRenderer data={pageData.content} />
+          <div className="prose prose-sm sm:prose-base md:prose-lg max-w-none dark:prose-invert">
+            <EditorJSRenderer data={pageData.content} />
+          </div>
         </div>
       </div>
     </div>
