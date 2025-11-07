@@ -41,6 +41,7 @@
     "@tanstack/react-query-devtools": "^5.87.4",
     "@types/dompurify": "^3.0.5",
     "@uploadcare/upload-client": "^6.17.0",
+    "@vercel/analytics": "^1.5.0",
     "autoprefixer": "^10.4.21",
     "bcryptjs": "^3.0.2",
     "cheerio": "^1.1.2",
